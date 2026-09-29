@@ -124,6 +124,53 @@
             color: #666;
             font-size: 13px;
         }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 6px 10px;
+            font-size: 13px;
+            background: #444;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .page-size {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .page-size select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
     </style>
 </head>
 
@@ -1562,34 +1609,63 @@ async function assignmentInspection(
 }
 
 
+
 /*
 ====================================================================
-RENDER TABLE
+PAGINATION STATE
 ====================================================================
 
-Generic helper function used to display JavaScript arrays as HTML
-tables.
+The simulation can generate many rows, especially the Assignment
+Inspection table.
 
-It is not part of the A/B assignment algorithm.
-It only makes the simulation easier to present.
+Instead of rendering every row at once, each table keeps its own
+pagination state.
+
+Default:
+
+    10 rows per page
+
+This makes the page easier to present and prevents a large table
+from taking over the entire screen.
 ====================================================================
 */
 
-function renderTable(
+var tablePagination = {};
+
+
+/*
+====================================================================
+RENDER PAGINATED TABLE
+====================================================================
+
+This function replaces the original renderTable().
+
+It creates:
+
+    - Table header
+    - Current page rows
+    - Previous button
+    - Next button
+    - Page number buttons
+    - Current row information
+    - Rows-per-page selector
+
+The underlying simulation data is NOT changed.
+Only the visible rows are paginated.
+====================================================================
+*/
+
+function renderPaginatedTable(
     elementId,
-    rows
+    rows,
+    defaultPageSize
 ) {
 
     var element =
-        document.getElementById(
-            elementId
-        );
+        document.getElementById(elementId);
 
 
-    if (
-        !rows ||
-        rows.length === 0
-    ) {
+    if (!rows || rows.length === 0) {
 
         element.innerHTML =
             "No data.";
@@ -1597,6 +1673,99 @@ function renderTable(
         return;
 
     }
+
+
+    // Create or reset pagination state for this table.
+    tablePagination[elementId] = {
+
+        rows: rows,
+
+        currentPage: 1,
+
+        pageSize:
+            defaultPageSize || 10
+
+    };
+
+
+    renderTablePage(elementId);
+
+}
+
+
+/*
+====================================================================
+RENDER CURRENT TABLE PAGE
+====================================================================
+
+Reads the current pagination state and renders only the rows that
+belong to the selected page.
+====================================================================
+*/
+
+function renderTablePage(elementId) {
+
+    var element =
+        document.getElementById(elementId);
+
+    var state =
+        tablePagination[elementId];
+
+
+    if (!state) {
+        return;
+    }
+
+
+    var rows =
+        state.rows;
+
+    var pageSize =
+        state.pageSize;
+
+    var currentPage =
+        state.currentPage;
+
+
+    // Calculate the total number of pages.
+    var totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                rows.length /
+                pageSize
+            )
+        );
+
+
+    // Protect against a page number outside the valid range.
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
+        state.currentPage = currentPage;
+    }
+
+    if (currentPage < 1) {
+        currentPage = 1;
+        state.currentPage = currentPage;
+    }
+
+
+    // Determine which rows should be displayed.
+    var startIndex =
+        (currentPage - 1) *
+        pageSize;
+
+    var endIndex =
+        Math.min(
+            startIndex + pageSize,
+            rows.length
+        );
+
+    var visibleRows =
+        rows.slice(
+            startIndex,
+            endIndex
+        );
 
 
     var columns =
@@ -1608,6 +1777,7 @@ function renderTable(
         "<thead><tr>";
 
 
+    // Render table headers.
     columns.forEach(
         function(column) {
 
@@ -1624,7 +1794,8 @@ function renderTable(
         "</tr></thead><tbody>";
 
 
-    rows.forEach(
+    // Render only the current page.
+    visibleRows.forEach(
         function(row) {
 
             html +=
@@ -1658,8 +1829,352 @@ function renderTable(
         "</tbody></table>";
 
 
+    /*
+    ---------------------------------------------------------------
+    Pagination controls
+    ---------------------------------------------------------------
+    */
+
+    html +=
+        "<div class=\"pagination\">";
+
+
+    // Row information.
+    html +=
+        "<div class=\"pagination-info\">" +
+        "Showing " +
+        (startIndex + 1) +
+        "-" +
+        endIndex +
+        " of " +
+        rows.length +
+        "</div>";
+
+
+    /*
+    ---------------------------------------------------------------
+    Rows-per-page selector
+    ---------------------------------------------------------------
+    */
+
+    html +=
+        "<div class=\"page-size\">" +
+        "Rows per page:" +
+        "<select " +
+        "onchange=\"changePageSize('" +
+        elementId +
+        "', this.value)\">";
+
+
+    [10, 25, 50, 100].forEach(
+        function(size) {
+
+            html +=
+                "<option value=\"" +
+                size +
+                "\" " +
+                (
+                    size === pageSize
+                        ? "selected"
+                        : ""
+                ) +
+                ">" +
+                size +
+                "</option>";
+
+        }
+    );
+
+
+    html +=
+        "</select></div>";
+
+
+    /*
+    ---------------------------------------------------------------
+    Page navigation
+    ---------------------------------------------------------------
+    */
+
+    html +=
+        "<div class=\"pagination-controls\">";
+
+
+    // Previous button.
+    html +=
+        "<button " +
+        "onclick=\"changeTablePage('" +
+        elementId +
+        "', " +
+        (currentPage - 1) +
+        ")\" " +
+        (
+            currentPage === 1
+                ? "disabled"
+                : ""
+        ) +
+        ">" +
+        "Previous" +
+        "</button>";
+
+
+    /*
+    ---------------------------------------------------------------
+    Page numbers
+    ---------------------------------------------------------------
+    Show only a small window of page numbers instead of
+    displaying every page.
+
+    Example:
+        Page 1  ->  1 2 3 ... 99 100
+        Page 5  ->  1 ... 3 4 5 6 7 ... 100
+        Page 50 ->  1 ... 48 49 50 51 52 ... 100
+        Page 100 -> 1 ... 98 99 100
+    ---------------------------------------------------------------
+    */
+
+    var pageWindow = 2;
+    var pageNumbers = [];
+
+    // Always show the first page.
+    pageNumbers.push(1);
+
+    // Calculate the pages around the current page.
+    var startPage = Math.max(
+        2,
+        currentPage - pageWindow
+    );
+
+    var endPage = Math.min(
+        totalPages - 1,
+        currentPage + pageWindow
+    );
+
+    // Add "..." if there is a gap between
+    // the first page and the visible page range.
+    if (startPage > 2) {
+        pageNumbers.push("...");
+    }
+
+    // Add the pages around the current page.
+    for (
+        var page = startPage;
+        page <= endPage;
+        page++
+    ) {
+        pageNumbers.push(page);
+    }
+
+    // Add "..." if there is a gap between
+    // the visible page range and the last page.
+    if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+    }
+
+    // Always show the last page.
+    if (totalPages > 1) {
+        pageNumbers.push(totalPages);
+    }
+
+    // ---------------------------------------------------------------
+    // Render the page numbers.
+    // ---------------------------------------------------------------
+
+    pageNumbers.forEach(function (page) {
+
+        // "..." is only a visual separator,
+        // so it should not be clickable.
+        if (page === "...") {
+
+            html +=
+                "<span class=\"pagination-ellipsis\">" +
+                "..." +
+                "</span>";
+
+            return;
+        }
+
+        // Render the actual page button.
+        html +=
+            "<button " +
+            "onclick=\"changeTablePage('" +
+            elementId +
+            "', " +
+            page +
+            ")\" " +
+            (
+                page === currentPage
+                    ? "disabled"
+                    : ""
+            ) +
+            ">" +
+            page +
+            "</button>";
+
+    });
+
+    // Next button.
+    html +=
+        "<button " +
+        "onclick=\"changeTablePage('" +
+        elementId +
+        "', " +
+        (currentPage + 1) +
+        ")\" " +
+        (
+            currentPage === totalPages
+                ? "disabled"
+                : ""
+        ) +
+        ">" +
+        "Next" +
+        "</button>";
+
+
+    html +=
+        "</div></div>";
+
+
     element.innerHTML =
         html;
+
+}
+
+
+/*
+====================================================================
+CHANGE TABLE PAGE
+====================================================================
+
+Called when the user clicks Previous, Next, or a page number.
+====================================================================
+*/
+
+function changeTablePage(
+    elementId,
+    page
+) {
+
+    var state =
+        tablePagination[elementId];
+
+
+    if (!state) {
+        return;
+    }
+
+
+    var totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                state.rows.length /
+                state.pageSize
+            )
+        );
+
+
+    // Keep page inside the valid range.
+    state.currentPage =
+        Math.max(
+            1,
+            Math.min(
+                page,
+                totalPages
+            )
+        );
+
+
+    renderTablePage(
+        elementId
+    );
+
+}
+
+
+/*
+====================================================================
+CHANGE PAGE SIZE
+====================================================================
+
+Allows the presenter to choose:
+
+    10
+    25
+    50
+    100
+
+rows per page.
+====================================================================
+*/
+
+function changePageSize(
+    elementId,
+    size
+) {
+
+    var state =
+        tablePagination[elementId];
+
+
+    if (!state) {
+        return;
+    }
+
+
+    state.pageSize =
+        Number(size);
+
+
+    // Return to the first page after changing page size.
+    state.currentPage =
+        1;
+
+
+    renderTablePage(
+        elementId
+    );
+
+}
+
+
+
+/*
+====================================================================
+RENDER TABLE
+====================================================================
+
+Generic helper function used to display JavaScript arrays as HTML
+tables.
+
+It is not part of the A/B assignment algorithm.
+It only makes the simulation easier to present.
+====================================================================
+*/
+
+function renderTable(
+    elementId,
+    rows
+) {
+
+    /*
+    ---------------------------------------------------------------
+    Compatibility wrapper
+    ---------------------------------------------------------------
+
+    Existing simulation functions still call renderTable().
+    Instead of changing every caller, renderTable now delegates
+    to the paginated table renderer.
+
+    Default page size = 10 rows.
+    ---------------------------------------------------------------
+    */
+
+    renderPaginatedTable(
+        elementId,
+        rows,
+        10
+    );
 
 }
 
