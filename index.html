@@ -171,6 +171,10 @@
             border-radius: 4px;
         }
 
+        .table-wrap {
+            overflow-x: auto;
+        }
+
     </style>
 </head>
 
@@ -1773,6 +1777,7 @@ function renderTablePage(elementId) {
 
 
     var html =
+        "<div class=\"table-wrap\">" +
         "<table>" +
         "<thead><tr>";
 
@@ -1826,7 +1831,7 @@ function renderTablePage(elementId) {
 
 
     html +=
-        "</tbody></table>";
+        "</tbody></table></div>";
 
 
     /*
