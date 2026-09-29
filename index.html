@@ -1,1471 +1,1868 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deterministic A/B Model Assignment Simulation</title>
-  <style>
-    :root {
-      --bg: #f5f7fa;
-      --card: #ffffff;
-      --text: #17202a;
-      --muted: #667085;
-      --border: #e4e7ec;
-      --accent: #2563eb;
-      --success: #16803c;
-      --success-bg: #ecfdf3;
-      --warning: #b54708;
-      --warning-bg: #fffaeb;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deterministic A/B Model Assignment - Simulation</title>
 
-    * { box-sizing: border-box; }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f5f6f8;
+            color: #222;
+        }
 
-    body {
-      margin: 0;
-      padding: 32px 20px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+        h1 {
+            margin-bottom: 8px;
+        }
 
-    h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-    }
+        .subtitle {
+            color: #666;
+            margin-top: 0;
+        }
 
-    .subtitle {
-      margin: 0 0 24px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 18px;
-    }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: end;
-    }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
 
-    .control {
-      min-width: 180px;
-    }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 7px;
-      font-size: 13px;
-      font-weight: 600;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
 
-    input,
-    select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #cfd4dc;
-      border-radius: 8px;
-      font-size: 14px;
-      background: white;
-    }
+        th, td {
+            padding: 9px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+            font-size: 14px;
+        }
 
-    button {
-      padding: 10px 18px;
-      border: 0;
-      border-radius: 8px;
-      background: var(--accent);
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+        th {
+            background: #f0f1f3;
+        }
 
-    button.secondary {
-      background: #475467;
-    }
+        button {
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #222;
+            color: white;
+            font-weight: bold;
+        }
 
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
+        button.secondary {
+            background: #666;
+        }
 
-    .status {
-      padding: 12px 14px;
-      border-radius: 8px;
-      margin-bottom: 18px;
-      display: none;
-      line-height: 1.5;
-    }
+        .button-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
 
-    .status.success {
-      display: block;
-      background: var(--success-bg);
-      color: var(--success);
-    }
+        .status {
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+            background: #f0f1f3;
+        }
 
-    .status.warning {
-      display: block;
-      background: var(--warning-bg);
-      color: var(--warning);
-    }
+        .passed {
+            color: #087a35;
+            font-weight: bold;
+        }
 
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
+        .failed {
+            color: #b42318;
+            font-weight: bold;
+        }
 
-    .metric {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 18px;
-    }
+        pre {
+            background: #181818;
+            color: #eee;
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
 
-    .metric-label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .metric-value {
-      font-size: 28px;
-      font-weight: 700;
-    }
-
-    .metric-detail {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 5px;
-    }
-
-    .bar-wrap {
-      margin-top: 18px;
-    }
-
-    .bar {
-      display: flex;
-      height: 36px;
-      border-radius: 7px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-
-    .bar-a,
-    .bar-b {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      min-width: 0;
-    }
-
-    .bar-a {
-      background: #dbeafe;
-      color: #1d4ed8;
-    }
-
-    .bar-b {
-      background: #f3e8ff;
-      color: #7e22ce;
-    }
-
-    h2 {
-      margin: 0 0 8px;
-      font-size: 19px;
-    }
-
-    h3 {
-      margin: 20px 0 10px;
-      font-size: 15px;
-    }
-
-    .description {
-      margin: 0 0 16px;
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    .flow {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-    }
-
-    .flow-step {
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 14px 8px;
-      text-align: center;
-      font-size: 13px;
-      background: #fafafa;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    th,
-    td {
-      text-align: left;
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    th {
-      background: #f8fafc;
-      font-weight: 600;
-    }
-
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-    }
-
-    .model-a {
-      color: #1d4ed8;
-      font-weight: 700;
-    }
-
-    .model-b {
-      color: #7e22ce;
-      font-weight: 700;
-    }
-
-    .pass {
-      color: var(--success);
-      font-weight: 700;
-    }
-
-    .fail {
-      color: #b42318;
-      font-weight: 700;
-    }
-
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
-
-    .pagination-left,
-    .pagination-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .pagination button {
-      padding: 7px 12px;
-      font-size: 12px;
-    }
-
-    .page-info {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .code {
-      background: #111827;
-      color: #e5e7eb;
-      border-radius: 8px;
-      padding: 16px;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .small {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .section-divider {
-      border: 0;
-      border-top: 1px solid var(--border);
-      margin: 24px 0;
-    }
-
-    @media (max-width: 760px) {
-      .summary {
-        grid-template-columns: 1fr;
-      }
-
-      .flow {
-        grid-template-columns: 1fr;
-      }
-
-      .control {
-        width: 100%;
-      }
-    }
-  </style>
+        .note {
+            color: #666;
+            font-size: 13px;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
+
+<div class="container">
 
     <h1>Deterministic A/B Model Assignment</h1>
     <p class="subtitle">
-      Local simulation for testing sticky 50/50 model assignment without a database.
-      Distribution testing, consistency testing, and assignment inspection are separated
-      so each can use a different number of users.
+        Simulation for GTM presentation and testing
     </p>
 
-    <!-- ========================================================= -->
-    <!-- GLOBAL EXPERIMENT CONFIGURATION -->
-    <!-- ========================================================= -->
-
+    <!-- =========================================================
+         CONFIGURATION
+         ========================================================= -->
     <div class="card">
-      <h2>Experiment Configuration</h2>
-      <p class="description">
-        This Experiment ID is used by all three tests. Keep it unchanged when comparing
-        results from the same experiment.
-      </p>
 
-      <div class="controls">
-        <div class="control">
-          <label for="experimentId">Experiment ID</label>
-          <input id="experimentId" value="recommendation_test_2026">
-        </div>
-      </div>
-    </div>
+        <h2>1. Configuration</h2>
 
-    <!-- ========================================================= -->
-    <!-- ASSIGNMENT FLOW -->
-    <!-- ========================================================= -->
+        <div class="config-grid">
 
-    <div class="card">
-      <h2>Assignment Flow</h2>
+            <div>
+                <label for="experimentId">Experiment ID</label>
+                <input
+                    id="experimentId"
+                    value="recommendation_test_2026"
+                >
+            </div>
 
-      <div class="flow">
-        <div class="flow-step">User ID<br>+<br>Experiment ID</div>
-        <div class="flow-step">SHA-256<br>Hash</div>
-        <div class="flow-step">Convert<br>to Number</div>
-        <div class="flow-step">Hash % 100<br>→ Bucket 0–99</div>
-        <div class="flow-step">0–49 → A<br>50–99 → B</div>
-      </div>
-    </div>
+            <div>
+                <label for="totalUsers">Total Users</label>
+                <input
+                    id="totalUsers"
+                    type="number"
+                    value="10000"
+                    min="1"
+                >
+            </div>
 
-    <!-- ========================================================= -->
-    <!-- TEST 1: DISTRIBUTION SIMULATION -->
-    <!-- ========================================================= -->
+            <div>
+                <label for="inspectionUsers">
+                    Users for Assignment Inspection
+                </label>
+                <input
+                    id="inspectionUsers"
+                    type="number"
+                    value="20"
+                    min="1"
+                >
+            </div>
 
-    <div class="card">
-      <h2>1. Distribution Simulation</h2>
+            <div>
+                <label for="consistencyRepetitions">
+                    Consistency Repetitions
+                </label>
+                <input
+                    id="consistencyRepetitions"
+                    type="number"
+                    value="10"
+                    min="1"
+                >
+            </div>
 
-      <p class="description">
-        Test whether a selected number of simulated users produces an approximately
-        50/50 distribution. This test does not check repeated assignments.
-      </p>
-
-      <div class="controls">
-        <div class="control">
-          <label for="distributionUsers">Users to Simulate</label>
-          <input
-            id="distributionUsers"
-            type="number"
-            value="1000"
-            min="1"
-            max="1000000">
         </div>
 
-        <div>
-          <button id="runDistribution">Run Distribution Test</button>
-        </div>
-      </div>
+        <h3>Models</h3>
 
-      <div id="distributionStatus" class="status"></div>
+        <p class="note">
+            Add or remove models. Percentages must add up to exactly 100%.
+        </p>
 
-      <div class="summary">
-        <div class="metric">
-          <div class="metric-label">Total Users</div>
-          <div id="distributionTotal" class="metric-value">-</div>
-          <div class="metric-detail">simulated users</div>
-        </div>
+        <table id="modelConfigTable">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Percentage</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
-        <div class="metric">
-          <div class="metric-label">Model A</div>
-          <div id="distributionA" class="metric-value">-</div>
-          <div id="distributionAPercentage" class="metric-detail">-</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Model B</div>
-          <div id="distributionB" class="metric-value">-</div>
-          <div id="distributionBPercentage" class="metric-detail">-</div>
-        </div>
-      </div>
-
-      <div class="bar-wrap">
-        <div class="bar">
-          <div id="barA" class="bar-a" style="width:50%">Model A</div>
-          <div id="barB" class="bar-b" style="width:50%">Model B</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ========================================================= -->
-    <!-- TEST 2: CONSISTENCY TEST -->
-    <!-- ========================================================= -->
-
-    <div class="card">
-      <h2>2. Full Consistency Test</h2>
-
-      <p class="description">
-        This test independently checks every selected user twice. The same User ID
-        and Experiment ID must always return the same bucket and model.
-        You can increase this to the full population you want to validate.
-      </p>
-
-      <div class="controls">
-        <div class="control">
-          <label for="consistencyUsers">Users to Check</label>
-          <input
-            id="consistencyUsers"
-            type="number"
-            value="1000"
-            min="1"
-            max="1000000">
-        </div>
-
-        <div>
-          <button id="runConsistency">Run Consistency Test</button>
-        </div>
-      </div>
-
-      <div id="consistencyStatus" class="status"></div>
-
-      <div class="summary">
-        <div class="metric">
-          <div class="metric-label">Users Checked</div>
-          <div id="consistencyTotal" class="metric-value">-</div>
-          <div class="metric-detail">users × 2 calculations</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Consistent</div>
-          <div id="consistencyPassed" class="metric-value">-</div>
-          <div class="metric-detail">same bucket + model</div>
-        </div>
-
-        <div class="metric">
-          <div class="metric-label">Inconsistent</div>
-          <div id="consistencyFailed" class="metric-value">-</div>
-          <div class="metric-detail">expected: 0</div>
-        </div>
-      </div>
-
-      <h3>Consistency Details</h3>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>User ID</th>
-              <th>First Bucket</th>
-              <th>Second Bucket</th>
-              <th>First Model</th>
-              <th>Second Model</th>
-              <th>Consistent</th>
-            </tr>
-          </thead>
-          <tbody id="consistencyTable"></tbody>
+            <tbody id="modelConfigBody"></tbody>
         </table>
-      </div>
 
-      <div class="pagination">
-        <div class="pagination-left">
-          <button id="consistencyPrev" class="secondary">Previous</button>
-          <button id="consistencyNext" class="secondary">Next</button>
+        <div class="button-row">
+            <button onclick="addModel()">
+                + Add Model
+            </button>
+
+            <button onclick="runSimulation()">
+                Run Simulation
+            </button>
         </div>
 
-        <div id="consistencyPageInfo" class="page-info">No data</div>
-
-        <div class="pagination-right">
-          <label for="consistencyPageSize" style="margin:0">Rows:</label>
-          <select id="consistencyPageSize" style="width:auto">
-            <option value="10">10</option>
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-      </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- TEST 3: ASSIGNMENT INSPECTION -->
-    <!-- ========================================================= -->
 
+    <!-- =========================================================
+         DISTRIBUTION SIMULATION
+         ========================================================= -->
     <div class="card">
-      <h2>3. Assignment Inspection</h2>
 
-      <p class="description">
-        Generate assignments independently from the distribution test. Use this when
-        you want to inspect the actual bucket and model assigned to every simulated user.
-        Set the number of users to the full population you want to validate.
-      </p>
+        <h2>2. Distribution Simulation</h2>
 
-      <div class="controls">
-        <div class="control">
-          <label for="assignmentUsers">Users to Generate</label>
-          <input
-            id="assignmentUsers"
-            type="number"
-            value="1000"
-            min="1"
-            max="1000000">
+        <p>
+            Simulates the configured number of users and checks whether
+            deterministic hashing produces the expected model distribution.
+        </p>
+
+        <div id="distributionResult">
+            Run the simulation to see the result.
         </div>
 
-        <div>
-          <button id="runAssignments">Generate Assignments</button>
-        </div>
-      </div>
-
-      <div id="assignmentStatus" class="status"></div>
-
-      <h3>Assignment Details</h3>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>User ID</th>
-              <th>Bucket</th>
-              <th>Assigned Model</th>
-              <th>Hash</th>
-            </tr>
-          </thead>
-          <tbody id="assignmentTable"></tbody>
-        </table>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-left">
-          <button id="assignmentPrev" class="secondary">Previous</button>
-          <button id="assignmentNext" class="secondary">Next</button>
-        </div>
-
-        <div id="assignmentPageInfo" class="page-info">No data</div>
-
-        <div class="pagination-right">
-          <label for="assignmentPageSize" style="margin:0">Rows:</label>
-          <select id="assignmentPageSize" style="width:auto">
-            <option value="10">10</option>
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-      </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- RULES -->
-    <!-- ========================================================= -->
 
+    <!-- =========================================================
+         CONSISTENCY TEST
+         ========================================================= -->
     <div class="card">
-      <h2>Bucket Rules</h2>
 
-      <div class="code">Bucket 0–49   → Model A (50 buckets)
-Bucket 50–99  → Model B (50 buckets)
+        <h2>3. Full Consistency Test</h2>
 
-Input  = SHA-256(Experiment ID + ":" + User ID)
-Bucket = Hash Number % 100</div>
+        <p>
+            Assigns the same users multiple times. The same user must always
+            receive the same model when the User ID and Experiment ID remain
+            unchanged.
+        </p>
 
-      <p class="small">
-        The bucket space is exactly 50/50. A finite user population will normally
-        produce an approximate 50/50 split rather than exactly 50/50.
-      </p>
+        <div id="consistencyResult">
+            Run the simulation to see the result.
+        </div>
+
     </div>
 
-  </div>
 
-  <script>
-    /*
-     * ================================================================
-     * DETERMINISTIC A/B MODEL ASSIGNMENT - PRESENTATION VERSION
-     * ================================================================
-     *
-     * Main idea:
-     *   User ID + Experiment ID
-     *          ↓
-     *       SHA-256
-     *          ↓
-     *    Convert to number
-     *          ↓
-     *       % 100
-     *          ↓
-     *      Bucket 0-99
-     *          ↓
-     *   0-49 = Model A
-     *  50-99 = Model B
-     *
-     * Important:
-     * The same User ID + Experiment ID always produces the same hash,
-     * therefore the same bucket and the same model.
-     * No database is required to remember the assignment.
-     */
-    (function () {
-      'use strict';
+    <!-- =========================================================
+         ASSIGNMENT INSPECTION
+         ========================================================= -->
+    <div class="card">
 
-      // Store all consistency-test results so the table can be paginated.
-      var consistencyData = [];
+        <h2>4. Assignment Inspection</h2>
 
-      // Keep track of the current page of the consistency table.
-      var consistencyPage = 1;
+        <p>
+            Shows how individual users are assigned from User ID + Experiment
+            ID → SHA-256 Hash → Bucket → Model.
+        </p>
 
-      // Store all assignment-inspection results for the same reason.
-      var assignmentData = [];
+        <div id="inspectionResult">
+            Run the simulation to see the result.
+        </div>
 
-      // Keep track of the current page of the assignment table.
-      var assignmentPage = 1;
+    </div>
 
-      /*
-       * Convert the binary result returned by crypto.subtle.digest()
-       * into a normal hexadecimal string.
-       *
-       * Example:
-       *   Binary SHA-256 result
-       *          ↓
-       *   "a13f...9c2e"
-       *
-       * A hexadecimal string is easier to display and use for the
-       * next step of the bucket calculation.
-       */
-      function bytesToHex(buffer) {
-        var bytes = new Uint8Array(buffer);
-        var hex = '';
 
-        for (var i = 0; i < bytes.length; i++) {
-          // Convert each byte to 2-character hexadecimal.
-          hex += bytes[i].toString(16).padStart(2, '0');
+    <!-- =========================================================
+         PRESENTATION EXPLANATION
+         ========================================================= -->
+    <div class="card">
+
+        <h2>5. Assignment Flow</h2>
+
+        <pre>
+User ID
+   |
+   v
+Combine User ID + Experiment ID
+   |
+   |  recommendation_test_2026:simulation_user_1
+   v
+SHA-256 Hash
+   |
+   v
+Convert Hash to Number
+   |
+   v
+Hash % 100
+   |
+   v
+Bucket 0 - 99
+   |
+   +----------------------+
+   |                      |
+   v                      v
+0 - 49                  50 - 99
+   |                      |
+   v                      v
+Model A                 Model B
+50%                     50%
+
+Same User ID + Same Experiment ID
+                |
+                v
+        Same Hash / Bucket
+                |
+                v
+        Same Model Assignment
+        </pre>
+
+    </div>
+
+
+    <!-- =========================================================
+         CONSOLE LOG
+         ========================================================= -->
+    <div class="card">
+
+        <h2>6. Console Log</h2>
+
+        <p class="note">
+            The same information is also printed to the browser console.
+            Open DevTools → Console to see it.
+        </p>
+
+        <pre id="consoleOutput"></pre>
+
+    </div>
+
+</div>
+
+
+<script>
+/*
+====================================================================
+DETERMINISTIC A/B MODEL ASSIGNMENT
+====================================================================
+
+Purpose:
+--------
+This script demonstrates how users can be assigned to different
+recommendation models deterministically.
+
+The important concept is:
+
+    User ID + Experiment ID
+              |
+              v
+          SHA-256
+              |
+              v
+        Bucket 0 - 99
+              |
+              v
+       Select Model
+
+Unlike round-robin assignment, the user does not move between
+models on every request.
+
+Example:
+
+    User 123
+       |
+       +--> Model A
+       +--> Model A
+       +--> Model A
+       +--> Model A
+
+The assignment is calculated again each time, but because the input
+is the same, the result is also the same.
+
+IMPORTANT:
+-----------
+This simulation does NOT save assignments to a database.
+
+That means:
+
+    No assignment table
+    No DB read
+    No DB write
+    No server-side assignment storage
+
+This is useful when the goal is to reduce infrastructure/database
+cost while maintaining consistent A/B groups.
+====================================================================
+*/
+
+
+/*
+====================================================================
+DEFAULT MODEL CONFIGURATION
+====================================================================
+
+The model configuration is stored in an array.
+
+The simulation supports at least 2 models and can support more.
+
+Example:
+
+    Model A = 50%
+    Model B = 50%
+
+The percentages must add up to exactly 100%.
+====================================================================
+*/
+
+var models = [
+    {
+        name: "Model A",
+        percentage: 50
+    },
+    {
+        name: "Model B",
+        percentage: 50
+    }
+];
+
+
+/*
+====================================================================
+CONSOLE LOG HELPER
+====================================================================
+
+This function prints information both to:
+
+1. Browser Console
+2. Console Log section in this HTML page
+
+When this code is moved to GTM, console.log() can be used directly
+to see the information in GTM Preview / browser DevTools.
+====================================================================
+*/
+
+var consoleOutput = document.getElementById("consoleOutput");
+
+function log(message, data) {
+
+    // Print to browser DevTools.
+    if (typeof data === "undefined") {
+        console.log(message);
+    } else {
+        console.log(message, data);
+    }
+
+    // Also print to the presentation page.
+    var text = message;
+
+    if (typeof data !== "undefined") {
+        try {
+            text += " " + JSON.stringify(data);
+        } catch (error) {
+            text += " " + String(data);
         }
+    }
 
-        return hex;
-      }
+    consoleOutput.textContent += text + "\n";
+}
 
-      /*
-       * Generate a SHA-256 hash from any text input.
-       *
-       * Why SHA-256?
-       * We need a deterministic function: identical input must always
-       * produce identical output. A hash also spreads different User IDs
-       * across the available bucket space.
-       *
-       * crypto.subtle.digest() is asynchronous, so this function returns
-       * a Promise and must be called with "await".
-       */
-      async function sha256(text) {
-        // Convert the text into bytes before hashing it.
-        var buffer = await crypto.subtle.digest(
-          'SHA-256',
-          new TextEncoder().encode(text)
+
+/*
+====================================================================
+PRINT SECTION HEADER
+====================================================================
+
+Used only to make the console output easier to read.
+
+Example:
+
+============================================================
+DISTRIBUTION SIMULATION
+============================================================
+====================================================================
+*/
+
+function printHeader(title) {
+
+    log("");
+    log("============================================================");
+    log(title);
+    log("============================================================");
+
+}
+
+
+/*
+====================================================================
+RENDER MODEL CONFIGURATION
+====================================================================
+
+Displays the model configuration on the page.
+
+This is separate from the assignment logic.
+
+The assignment algorithm only needs the models array.
+====================================================================
+*/
+
+function renderModelConfig() {
+
+    var body =
+        document.getElementById("modelConfigBody");
+
+    body.innerHTML = "";
+
+    models.forEach(function(model, index) {
+
+        var row =
+            document.createElement("tr");
+
+        row.innerHTML =
+            "<td>" +
+                "<input " +
+                    "value=\"" +
+                    model.name +
+                    "\" " +
+                    "onchange=\"updateModelName(" +
+                    index +
+                    ", this.value)\">" +
+            "</td>" +
+
+            "<td>" +
+                "<input " +
+                    "type=\"number\" " +
+                    "min=\"0\" " +
+                    "max=\"100\" " +
+                    "value=\"" +
+                    model.percentage +
+                    "\" " +
+                    "onchange=\"updateModelPercentage(" +
+                    index +
+                    ", this.value)\">" +
+            "</td>" +
+
+            "<td>" +
+                "<button " +
+                    "class=\"secondary\" " +
+                    "onclick=\"removeModel(" +
+                    index +
+                    ")\">" +
+                    "Remove" +
+                "</button>" +
+            "</td>";
+
+        body.appendChild(row);
+
+    });
+
+}
+
+
+/*
+====================================================================
+UPDATE MODEL NAME
+====================================================================
+*/
+
+function updateModelName(index, value) {
+
+    models[index].name = value;
+
+}
+
+
+/*
+====================================================================
+UPDATE MODEL PERCENTAGE
+====================================================================
+
+Converts the HTML input value from a string to a number.
+====================================================================
+*/
+
+function updateModelPercentage(index, value) {
+
+    models[index].percentage =
+        Number(value);
+
+}
+
+
+/*
+====================================================================
+ADD MODEL
+====================================================================
+
+Adds another model to the experiment.
+
+Example:
+
+    Model A = 50%
+    Model B = 30%
+    Model C = 20%
+====================================================================
+*/
+
+function addModel() {
+
+    models.push({
+
+        name:
+            "Model " +
+            String.fromCharCode(
+                65 + models.length
+            ),
+
+        percentage: 0
+
+    });
+
+    renderModelConfig();
+
+}
+
+
+/*
+====================================================================
+REMOVE MODEL
+====================================================================
+
+The simulation requires at least 2 models.
+====================================================================
+*/
+
+function removeModel(index) {
+
+    if (models.length <= 2) {
+
+        alert(
+            "At least 2 models are required."
         );
 
-        // Convert the binary hash into hexadecimal.
-        return bytesToHex(buffer);
-      }
+        return;
 
-      /*
-       * Convert the SHA-256 hash into one of 100 buckets.
-       *
-       * We take the first 8 hexadecimal characters and convert them
-       * into a number. Then % 100 limits the result to 0-99.
-       *
-       * Example:
-       *   Hash number = 123456789
-       *   123456789 % 100 = 89
-       *   Bucket = 89
-       */
-      function getBucketFromHash(hashHex) {
-        // First 8 hex characters give us a deterministic integer.
-        var hashNumber = parseInt(hashHex.substring(0, 8), 16);
+    }
 
-        // Convert the integer into a bucket from 0 to 99.
-        return hashNumber % 100;
-      }
+    models.splice(index, 1);
 
-      /*
-       * This is the CORE assignment function.
-       *
-       * It takes:
-       *   1. User ID
-       *   2. Experiment ID
-       *
-       * and returns:
-       *   - User ID
-       *   - Bucket
-       *   - Assigned model
-       *   - Full SHA-256 hash
-       *
-       * There is no database lookup here. The assignment is calculated
-       * again whenever we need it.
-       */
-      async function getAssignment(userId, experimentId) {
-        // Make the experiment part of the hash input.
-        // This means different experiments can assign the same user
-        // independently.
-        var input = experimentId + ':' + userId;
+    renderModelConfig();
 
-        // Generate the deterministic hash.
-        var hashHex = await sha256(input);
+}
 
-        // Convert the hash into bucket 0-99.
-        var bucket = getBucketFromHash(hashHex);
 
-        /*
-         * Split the 100 buckets into two groups:
-         *   0-49  = Model A (50 buckets)
-         *   50-99 = Model B (50 buckets)
-         *
-         * This gives a 50/50 allocation at the bucket level.
-         */
-        var model = bucket < 50
-          ? 'Model A'
-          : 'Model B';
+/*
+====================================================================
+GET CONFIGURATION
+====================================================================
 
-        // Return everything needed by the tests and UI.
-        return {
-          userId: userId,
-          bucket: bucket,
-          model: model,
-          hash: hashHex
-        };
-      }
+Reads the configuration entered by the user.
 
-      // Read the Experiment ID entered in the UI.
-      function getExperimentId() {
-        return document.getElementById('experimentId').value.trim();
-      }
+This makes the experiment configuration customizable without
+changing the core assignment algorithm.
+====================================================================
+*/
 
-      /*
-       * Validate the number of simulated users.
-       *
-       * The simulation allows 1 to 1,000,000 users so accidental
-       * extremely large inputs do not freeze the browser.
-       */
-      function validateNumber(value, name) {
-        var number = parseInt(value, 10);
+function getConfig() {
+
+    return {
+
+        experimentId:
+            document.getElementById(
+                "experimentId"
+            ).value.trim(),
+
+        totalUsers:
+            Number(
+                document.getElementById(
+                    "totalUsers"
+                ).value
+            ),
+
+        inspectionUsers:
+            Number(
+                document.getElementById(
+                    "inspectionUsers"
+                ).value
+            ),
+
+        consistencyRepetitions:
+            Number(
+                document.getElementById(
+                    "consistencyRepetitions"
+                ).value
+            ),
+
+        models:
+            models
+
+    };
+
+}
+
+
+/*
+====================================================================
+VALIDATE CONFIGURATION
+====================================================================
+
+Before running the simulation we verify:
+
+1. Experiment ID exists.
+2. Total users is valid.
+3. At least 2 models exist.
+4. Every model has a name.
+5. Every percentage is valid.
+6. Total percentage equals 100%.
+
+This prevents incorrect experiment configurations.
+====================================================================
+*/
+
+function validateConfig(config) {
+
+    if (!config.experimentId) {
+
+        throw new Error(
+            "Experiment ID cannot be empty."
+        );
+
+    }
+
+
+    if (
+        !Number.isInteger(
+            config.totalUsers
+        ) ||
+        config.totalUsers <= 0
+    ) {
+
+        throw new Error(
+            "Total users must be a positive integer."
+        );
+
+    }
+
+
+    if (
+        !Array.isArray(config.models) ||
+        config.models.length < 2
+    ) {
+
+        throw new Error(
+            "At least 2 models are required."
+        );
+
+    }
+
+
+    var totalPercentage = 0;
+
+
+    config.models.forEach(
+        function(model, index) {
+
+            if (!model.name) {
+
+                throw new Error(
+                    "Model " +
+                    (index + 1) +
+                    " has no name."
+                );
+
+            }
+
+
+            if (
+                typeof model.percentage !==
+                "number" ||
+                model.percentage < 0
+            ) {
+
+                throw new Error(
+                    "Invalid percentage for " +
+                    model.name
+                );
+
+            }
+
+
+            totalPercentage +=
+                model.percentage;
+
+        }
+    );
+
+
+    if (
+        Math.abs(
+            totalPercentage - 100
+        ) > 0.000001
+    ) {
+
+        throw new Error(
+            "Model percentages must equal 100%. " +
+            "Current total: " +
+            totalPercentage +
+            "%"
+        );
+
+    }
+
+}
+
+
+/*
+====================================================================
+SHA-256 HASH
+====================================================================
+
+This function converts the experiment input into a SHA-256 hash.
+
+Input:
+
+    experimentId:userId
+
+Example:
+
+    recommendation_test_2026:simulation_user_1
+
+Why hash?
+
+A hash gives us a deterministic result.
+
+The same input always produces the same hash.
+
+Different users normally produce different hashes.
+
+The Web Crypto API is used here.
+
+In a modern browser, crypto.subtle.digest() performs SHA-256.
+====================================================================
+*/
+
+async function sha256(text) {
+
+    // TextEncoder converts the string into bytes.
+    var encoder =
+        new TextEncoder();
+
+    var data =
+        encoder.encode(text);
+
+
+    // Generate SHA-256.
+    var hashBuffer =
+        await crypto.subtle.digest(
+            "SHA-256",
+            data
+        );
+
+
+    // Convert the binary hash into an array.
+    var hashArray =
+        Array.from(
+            new Uint8Array(
+                hashBuffer
+            )
+        );
+
+
+    // Convert each byte into hexadecimal.
+    return hashArray
+        .map(function(byte) {
+
+            return byte
+                .toString(16)
+                .padStart(2, "0");
+
+        })
+        .join("");
+
+}
+
+
+/*
+====================================================================
+CONVERT HASH TO BUCKET
+====================================================================
+
+We do not need the entire SHA-256 number for the experiment.
+
+We take the first 8 hexadecimal characters, convert them into a
+number, and use modulo 100.
+
+Result:
+
+    0 - 99
+
+Example:
+
+    SHA-256
+       |
+       v
+    "a81f..."
+       |
+       v
+    first 8 characters
+       |
+       v
+    number
+       |
+       v
+    % 100
+       |
+       v
+    bucket = 40
+
+This bucket is then mapped to the configured model percentage.
+====================================================================
+*/
+
+function hashToBucket(hash) {
+
+    // Take the first 8 characters of the hash.
+    var hashPart =
+        hash.substring(0, 8);
+
+
+    // Convert hexadecimal to a number.
+    var number =
+        parseInt(
+            hashPart,
+            16
+        );
+
+
+    // Force the value into 0-99.
+    return number % 100;
+
+}
+
+
+/*
+====================================================================
+SELECT MODEL FROM BUCKET
+====================================================================
+
+The bucket is compared with the cumulative model percentages.
+
+Example:
+
+    Model A = 50%
+    Model B = 50%
+
+Creates:
+
+    0 - 49  -> Model A
+    50 - 99 -> Model B
+
+
+For:
+
+    Model A = 50%
+    Model B = 30%
+    Model C = 20%
+
+Creates:
+
+    0 - 49  -> Model A
+    50 - 79 -> Model B
+    80 - 99 -> Model C
+
+The function does not need to know how many models exist.
+====================================================================
+*/
+
+function getModelFromBucket(
+    bucket,
+    configuredModels
+) {
+
+    var cumulative =
+        0;
+
+
+    for (
+        var i = 0;
+        i < configuredModels.length;
+        i++
+    ) {
+
+        cumulative +=
+            configuredModels[i].percentage;
+
 
         if (
-          !Number.isFinite(number) ||
-          number < 1 ||
-          number > 1000000
+            bucket <
+            cumulative
         ) {
-          throw new Error(
-            name + ' must be between 1 and 1,000,000.'
-          );
+
+            return configuredModels[i];
+
         }
 
-        return number;
-      }
+    }
 
-      // Display a success or warning message in the relevant test section.
-      function setStatus(element, message, type) {
-        element.textContent = message;
-        element.className = 'status ' + type;
-      }
 
-      // Remove all existing rows from a table before rendering new rows.
-      function clearTable(element) {
-        while (element.firstChild) {
-          element.removeChild(element.firstChild);
-        }
-      }
+    // Fallback.
+    // Normally this should never be reached when percentages
+    // have been validated correctly.
+    return configuredModels[
+        configuredModels.length - 1
+    ];
 
-      /*
-       * Add one table cell safely.
-       * textContent is used instead of innerHTML so the value is treated
-       * as text rather than executable HTML.
-       */
-      function addCell(row, value, className) {
-        var cell = document.createElement('td');
-        cell.textContent = value;
+}
 
-        if (className) {
-          cell.className = className;
-        }
 
-        row.appendChild(cell);
-      }
+/*
+====================================================================
+ASSIGN ONE USER
+====================================================================
 
-      /*
-       * Generic pagination renderer.
-       *
-       * The test may contain thousands of rows, but we only put one page
-       * of rows into the HTML table at a time.
-       *
-       * This keeps the UI manageable while the complete result remains
-       * available in memory.
-       */
-      function renderPagination(
-        data,
-        page,
-        pageSize,
-        tableElement,
-        pageInfoElement,
-        prevButton,
-        nextButton,
-        rowRenderer
-      ) {
-        clearTable(tableElement);
+This is the CORE function.
 
-        // Nothing to render.
-        if (!data.length) {
-          pageInfoElement.textContent = 'No data';
-          prevButton.disabled = true;
-          nextButton.disabled = true;
-          return page;
-        }
+The assignment is based only on:
 
-        // Calculate the total number of pages.
-        var totalPages = Math.ceil(data.length / pageSize);
+    User ID
+    +
+    Experiment ID
 
-        // Prevent the current page from going outside the valid range.
-        if (page > totalPages) {
-          page = totalPages;
-        }
+There is no:
 
-        if (page < 1) {
-          page = 1;
-        }
+    Math.random()
+    Round-robin counter
+    Database lookup
+    Database write
 
-        // Determine which rows belong to the current page.
-        var start = (page - 1) * pageSize;
-        var end = Math.min(start + pageSize, data.length);
+Example:
 
-        // Render only the current page.
-        for (var i = start; i < end; i++) {
-          tableElement.appendChild(rowRenderer(data[i]));
-        }
+    User ID:
+        simulation_user_123
 
-        // Show page and row information below the table.
-        pageInfoElement.textContent =
-          'Page ' + page +
-          ' of ' + totalPages +
-          ' · Showing ' + (start + 1) +
-          '–' + end +
-          ' of ' + data.length;
+    Experiment:
+        recommendation_test_2026
 
-        // Disable navigation buttons when there is no previous/next page.
-        prevButton.disabled = page <= 1;
-        nextButton.disabled = page >= totalPages;
+    Combined input:
+        recommendation_test_2026:simulation_user_123
 
-        return page;
-      }
+    SHA-256:
+        abcdef123456...
 
-      /*
-       * Build one row for the consistency table.
-       *
-       * The important columns are First Bucket vs Second Bucket and
-       * First Model vs Second Model. They should always be identical.
-       */
-      function consistencyRowRenderer(item) {
-        var row = document.createElement('tr');
+    Bucket:
+        37
 
-        addCell(row, item.userId);
-        addCell(row, item.firstBucket);
-        addCell(row, item.secondBucket);
+    Model:
+        Model A
+====================================================================
+*/
 
-        // Apply a different CSS class to Model A and Model B.
-        addCell(
-          row,
-          item.firstModel,
-          item.firstModel === 'Model A'
-            ? 'model-a'
-            : 'model-b'
+async function assignUser(
+    userId,
+    config
+) {
+
+    // Combine Experiment ID and User ID.
+    var input =
+        config.experimentId +
+        ":" +
+        userId;
+
+
+    // Generate deterministic SHA-256 hash.
+    var hash =
+        await sha256(input);
+
+
+    // Convert the hash into a 0-99 bucket.
+    var bucket =
+        hashToBucket(hash);
+
+
+    // Select model according to the configured distribution.
+    var model =
+        getModelFromBucket(
+            bucket,
+            config.models
         );
 
-        addCell(
-          row,
-          item.secondModel,
-          item.secondModel === 'Model A'
-            ? 'model-a'
-            : 'model-b'
-        );
 
-        // Show a check mark when both calculations match.
-        addCell(
-          row,
-          item.consistent ? '✓' : '✗',
-          item.consistent ? 'pass' : 'fail'
-        );
+    // Return all information needed for inspection.
+    return {
 
-        return row;
-      }
+        userId:
+            userId,
 
-      // Build one row for the assignment inspection table.
-      function assignmentRowRenderer(item) {
-        var row = document.createElement('tr');
+        experimentId:
+            config.experimentId,
 
-        addCell(row, item.userId);
-        addCell(row, item.bucket);
+        input:
+            input,
 
-        addCell(
-          row,
-          item.model,
-          item.model === 'Model A'
-            ? 'model-a'
-            : 'model-b'
-        );
+        hash:
+            hash,
 
-        // Show the full hash so the assignment can be inspected manually.
-        addCell(row, item.hash);
+        bucket:
+            bucket,
 
-        return row;
-      }
+        model:
+            model.name,
 
-      // Re-render the consistency table using the selected page size.
-      function renderConsistencyTable() {
-        var pageSize =
-          parseInt(
-            document.getElementById('consistencyPageSize').value,
-            10
-          );
+        percentage:
+            model.percentage
 
-        consistencyPage = renderPagination(
-          consistencyData,
-          consistencyPage,
-          pageSize,
-          document.getElementById('consistencyTable'),
-          document.getElementById('consistencyPageInfo'),
-          document.getElementById('consistencyPrev'),
-          document.getElementById('consistencyNext'),
-          consistencyRowRenderer
-        );
-      }
+    };
 
-      // Re-render the assignment table using the selected page size.
-      function renderAssignmentTable() {
-        var pageSize =
-          parseInt(
-            document.getElementById('assignmentPageSize').value,
-            10
-          );
+}
 
-        assignmentPage = renderPagination(
-          assignmentData,
-          assignmentPage,
-          pageSize,
-          document.getElementById('assignmentTable'),
-          document.getElementById('assignmentPageInfo'),
-          document.getElementById('assignmentPrev'),
-          document.getElementById('assignmentNext'),
-          assignmentRowRenderer
-        );
-      }
 
-      /*
-       * TEST 1: DISTRIBUTION
-       *
-       * Generate many different User IDs and see how many users land in
-       * Model A vs Model B.
-       *
-       * This proves the bucket allocation is approximately 50/50 for a
-       * finite population. It does NOT prove that an individual user is
-       * sticky; that is what Test 2 checks.
-       */
-      async function runDistributionTest() {
-        var status =
-          document.getElementById('distributionStatus');
+/*
+====================================================================
+DISTRIBUTION SIMULATION
+====================================================================
 
-        try {
-          var experimentId = getExperimentId();
+Purpose:
 
-          if (!experimentId) {
-            throw new Error('Experiment ID cannot be empty.');
-          }
+Simulate many users and check whether the actual distribution is
+close to the configured distribution.
 
-          var totalUsers =
-            validateNumber(
-              document.getElementById('distributionUsers').value,
-              'Distribution users'
+Example:
+
+Configuration:
+
+    10,000 users
+    Model A = 50%
+    Model B = 50%
+
+Expected:
+
+    Model A = 5,000
+    Model B = 5,000
+
+Actual results might be:
+
+    Model A = 4,982
+    Model B = 5,018
+
+The result does not have to be exactly 50/50 because we are
+observing a finite number of users.
+
+The important point is that the assignment is deterministic.
+====================================================================
+*/
+
+async function distributionSimulation(
+    config
+) {
+
+    printHeader(
+        "DISTRIBUTION SIMULATION"
+    );
+
+
+    var counts = {};
+
+
+    // Create a counter for every model.
+    config.models.forEach(
+        function(model) {
+
+            counts[model.name] = 0;
+
+        }
+    );
+
+
+    // Assign every simulated user.
+    for (
+        var i = 1;
+        i <= config.totalUsers;
+        i++
+    ) {
+
+        var result =
+            await assignUser(
+                "simulation_user_" + i,
+                config
             );
 
-          // Counters for each model.
-          var modelACount = 0;
-          var modelBCount = 0;
 
-          var startedAt = performance.now();
+        counts[result.model]++;
 
-          // Assign every simulated user independently.
-          for (var i = 1; i <= totalUsers; i++) {
-            var assignment =
-              await getAssignment(
-                'test_user_' + i,
-                experimentId
-              );
+    }
 
-            if (assignment.model === 'Model A') {
-              modelACount++;
-            } else {
-              modelBCount++;
-            }
-          }
 
-          // Measure how long the simulation took.
-          var elapsed =
-            (performance.now() - startedAt).toFixed(0);
+    var resultTable = [];
 
-          // Convert counts into percentages.
-          var modelAPercentage =
-            (modelACount / totalUsers * 100).toFixed(2);
 
-          var modelBPercentage =
-            (modelBCount / totalUsers * 100).toFixed(2);
+    // Calculate actual percentage.
+    config.models.forEach(
+        function(model) {
 
-          // Update the numbers shown in the UI.
-          document.getElementById('distributionTotal').textContent =
-            totalUsers.toLocaleString();
+            var actualUsers =
+                counts[model.name];
 
-          document.getElementById('distributionA').textContent =
-            modelACount.toLocaleString();
 
-          document.getElementById('distributionAPercentage').textContent =
-            modelAPercentage + '% of users';
+            var actualPercentage =
+                (
+                    actualUsers /
+                    config.totalUsers
+                ) * 100;
 
-          document.getElementById('distributionB').textContent =
-            modelBCount.toLocaleString();
 
-          document.getElementById('distributionBPercentage').textContent =
-            modelBPercentage + '% of users';
+            var difference =
+                actualPercentage -
+                model.percentage;
 
-          // Resize the visual bar to match the actual distribution.
-          document.getElementById('barA').style.width =
-            modelAPercentage + '%';
 
-          document.getElementById('barA').textContent =
-            'Model A ' + modelAPercentage + '%';
+            resultTable.push({
 
-          document.getElementById('barB').style.width =
-            modelBPercentage + '%';
+                Model:
+                    model.name,
 
-          document.getElementById('barB').textContent =
-            'Model B ' + modelBPercentage + '%';
+                ExpectedUsers:
+                    Math.round(
+                        config.totalUsers *
+                        model.percentage /
+                        100
+                    ),
 
-          setStatus(
-            status,
-            'Distribution test completed in ' +
-            elapsed +
-            ' ms.',
-            'success'
-          );
+                ActualUsers:
+                    actualUsers,
 
-          // Also print a compact result in DevTools for presentation/debugging.
-          console.log('');
-          console.log(
-            '========== DISTRIBUTION TEST =========='
-          );
-          console.log('Experiment ID:', experimentId);
-          console.log('Users:', totalUsers);
-          console.log(
-            'Model A:',
-            modelACount,
-            '(' + modelAPercentage + '%)'
-          );
-          console.log(
-            'Model B:',
-            modelBCount,
-            '(' + modelBPercentage + '%)'
-          );
-          console.log('Elapsed:', elapsed + ' ms');
-          console.log(
-            '======================================='
-          );
+                ExpectedPercentage:
+                    model.percentage.toFixed(2)
+                    + "%",
 
-        } catch (error) {
-          // Show validation/runtime errors without stopping the whole page.
-          setStatus(
-            status,
-            error.message,
-            'warning'
-          );
-        }
-      }
+                ActualPercentage:
+                    actualPercentage.toFixed(2)
+                    + "%",
 
-      /*
-       * TEST 2: CONSISTENCY
-       *
-       * This is the most important test for the "sticky assignment" idea.
-       *
-       * For every user:
-       *   Calculation #1 → hash → bucket → model
-       *   Calculation #2 → hash → bucket → model
-       *
-       * Because the input is identical, both results should be identical.
-       * Expected result:
-       *   Consistent   = all users
-       *   Inconsistent = 0
-       */
-      async function runConsistencyTest() {
-        var status =
-          document.getElementById('consistencyStatus');
+                Difference:
+                    difference.toFixed(2)
+                    + "%"
 
-        try {
-          var experimentId = getExperimentId();
-
-          if (!experimentId) {
-            throw new Error('Experiment ID cannot be empty.');
-          }
-
-          var totalUsers =
-            validateNumber(
-              document.getElementById('consistencyUsers').value,
-              'Consistency users'
-            );
-
-          var startedAt = performance.now();
-
-          // Start with an empty result set for this test run.
-          consistencyData = [];
-
-          var passed = 0;
-          var failed = 0;
-
-          for (var i = 1; i <= totalUsers; i++) {
-            var userId = 'test_user_' + i;
-
-            // First calculation for the same user.
-            var first =
-              await getAssignment(
-                userId,
-                experimentId
-              );
-
-            // Second calculation using exactly the same inputs.
-            var second =
-              await getAssignment(
-                userId,
-                experimentId
-              );
-
-            // A user is consistent only when both bucket AND model match.
-            var consistent =
-              first.bucket === second.bucket &&
-              first.model === second.model;
-
-            if (consistent) {
-              passed++;
-            } else {
-              failed++;
-            }
-
-            // Save both results so the difference can be inspected in the table.
-            consistencyData.push({
-              userId: userId,
-              firstBucket: first.bucket,
-              secondBucket: second.bucket,
-              firstModel: first.model,
-              secondModel: second.model,
-              consistent: consistent
             });
-          }
 
-          var elapsed =
-            (performance.now() - startedAt).toFixed(0);
-
-          // Update summary numbers.
-          document.getElementById('consistencyTotal').textContent =
-            totalUsers.toLocaleString();
-
-          document.getElementById('consistencyPassed').textContent =
-            passed.toLocaleString();
-
-          document.getElementById('consistencyFailed').textContent =
-            failed.toLocaleString();
-
-          // Return to page 1 after generating a new result.
-          consistencyPage = 1;
-          renderConsistencyTable();
-
-          // A zero-failure result means every repeated assignment matched.
-          if (failed === 0) {
-            setStatus(
-              status,
-              'PASSED ✓ — All ' +
-              totalUsers.toLocaleString() +
-              ' users returned the same bucket and model on both calculations. Completed in ' +
-              elapsed +
-              ' ms.',
-              'success'
-            );
-          } else {
-            setStatus(
-              status,
-              'FAILED ✗ — ' +
-              failed.toLocaleString() +
-              ' users changed bucket or model.',
-              'warning'
-            );
-          }
-
-          // Print the summary in the browser console.
-          console.log('');
-          console.log(
-            '========== CONSISTENCY TEST =========='
-          );
-          console.log('Experiment ID:', experimentId);
-          console.log('Users checked:', totalUsers);
-          console.log('Consistent:', passed);
-          console.log('Inconsistent:', failed);
-          console.log('Elapsed:', elapsed + ' ms');
-
-          if (failed === 0) {
-            console.log(
-              'Result: PASSED ✓'
-            );
-          } else {
-            console.error(
-              'Result: FAILED ✗'
-            );
-          }
-
-          console.log(
-            '======================================'
-          );
-
-          // Expose the complete dataset for manual inspection in DevTools.
-          // Example: window.__consistencyTest
-          window.__consistencyTest = consistencyData;
-
-        } catch (error) {
-          setStatus(
-            status,
-            error.message,
-            'warning'
-          );
         }
-      }
+    );
 
-      /*
-       * TEST 3: ASSIGNMENT INSPECTION
-       *
-       * Generate one assignment for every simulated user and show:
-       *   User ID → Bucket → Model → Hash
-       *
-       * This is useful when presenting the actual assignment logic because
-       * you can inspect individual users rather than only aggregate counts.
-       */
-      async function runAssignmentTest() {
-        var status =
-          document.getElementById('assignmentStatus');
 
-        try {
-          var experimentId = getExperimentId();
+    log(
+        "Configured distribution:",
+        config.models
+    );
 
-          if (!experimentId) {
-            throw new Error('Experiment ID cannot be empty.');
-          }
 
-          var totalUsers =
-            validateNumber(
-              document.getElementById('assignmentUsers').value,
-              'Assignment users'
+    log(
+        "Distribution result:",
+        resultTable
+    );
+
+
+    renderTable(
+        "distributionResult",
+        resultTable
+    );
+
+
+    return resultTable;
+
+}
+
+
+/*
+====================================================================
+FULL CONSISTENCY TEST
+====================================================================
+
+Purpose:
+
+Prove that the same user always receives the same model.
+
+For every simulated user, we perform the assignment multiple times.
+
+Example:
+
+    User 123
+
+    Attempt 1 -> Model A
+    Attempt 2 -> Model A
+    Attempt 3 -> Model A
+    Attempt 4 -> Model A
+    Attempt 5 -> Model A
+
+If any attempt produces a different model, the test fails.
+
+Expected result:
+
+    Inconsistent users = 0
+    Test = PASSED
+====================================================================
+*/
+
+async function fullConsistencyTest(
+    config
+) {
+
+    printHeader(
+        "FULL CONSISTENCY TEST"
+    );
+
+
+    var inconsistentUsers = [];
+
+    var totalAssignments = 0;
+
+
+    // Test every simulated user.
+    for (
+        var i = 1;
+        i <= config.totalUsers;
+        i++
+    ) {
+
+        var userId =
+            "simulation_user_" + i;
+
+
+        // Get the first assignment.
+        var firstResult =
+            await assignUser(
+                userId,
+                config
             );
 
-          var startedAt = performance.now();
 
-          // Clear previous assignment results.
-          assignmentData = [];
+        var expectedModel =
+            firstResult.model;
 
-          // Generate an assignment for every simulated user.
-          for (var i = 1; i <= totalUsers; i++) {
-            var assignment =
-              await getAssignment(
-                'test_user_' + i,
-                experimentId
-              );
 
-            assignmentData.push(assignment);
-          }
+        var consistent =
+            true;
 
-          var elapsed =
-            (performance.now() - startedAt).toFixed(0);
 
-          // Start the table from page 1.
-          assignmentPage = 1;
-          renderAssignmentTable();
+        // Repeat the assignment.
+        for (
+            var repetition = 1;
+            repetition <=
+            config.consistencyRepetitions;
+            repetition++
+        ) {
 
-          setStatus(
-            status,
-            'Generated ' +
-            totalUsers.toLocaleString() +
-            ' assignments in ' +
-            elapsed +
-            ' ms. Use pagination to inspect the complete result.',
-            'success'
-          );
+            var result =
+                await assignUser(
+                    userId,
+                    config
+                );
 
-          // Log information useful during the presentation/debugging.
-          console.log('');
-          console.log(
-            '========== ASSIGNMENT TEST =========='
-          );
-          console.log('Experiment ID:', experimentId);
-          console.log('Users generated:', totalUsers);
-          console.log('Elapsed:', elapsed + ' ms');
-          console.log(
-            'Full data: window.__assignmentTest'
-          );
-          console.log(
-            '====================================='
-          );
 
-          // Show the first 20 assignments in the browser console.
-          console.table(
-            assignmentData.slice(0, 20).map(function (item) {
-              return {
-                userId: item.userId,
-                bucket: item.bucket,
-                model: item.model,
-                hash: item.hash
-              };
-            })
-          );
+            totalAssignments++;
 
-          // Expose the complete dataset for manual inspection.
-          // Example: window.__assignmentTest[499]
-          window.__assignmentTest = assignmentData;
 
-        } catch (error) {
-          setStatus(
-            status,
-            error.message,
-            'warning'
-          );
+            // Compare the new result with the first result.
+            if (
+                result.model !==
+                expectedModel
+            ) {
+
+                consistent =
+                    false;
+
+                break;
+
+            }
+
         }
-      }
 
-      /*
-       * ================================================================
-       * EVENT LISTENERS
-       * ================================================================
-       *
-       * These connect buttons and dropdowns in the HTML UI to the
-       * JavaScript functions above.
-       */
 
-      // Run Distribution Test when its button is clicked.
-      document
-        .getElementById('runDistribution')
-        .addEventListener(
-          'click',
-          runDistributionTest
+        // Store inconsistent users.
+        if (!consistent) {
+
+            inconsistentUsers.push({
+
+                userId:
+                    userId,
+
+                expectedModel:
+                    expectedModel
+
+            });
+
+        }
+
+    }
+
+
+    var passed =
+        inconsistentUsers.length === 0;
+
+
+    var summary = {
+
+        TotalUsers:
+            config.totalUsers,
+
+        Assignments:
+            totalAssignments,
+
+        InconsistentUsers:
+            inconsistentUsers.length,
+
+        Result:
+            passed
+                ? "PASSED"
+                : "FAILED"
+
+    };
+
+
+    log(
+        "Consistency test:",
+        summary
+    );
+
+
+    if (
+        inconsistentUsers.length > 0
+    ) {
+
+        log(
+            "Inconsistent users:",
+            inconsistentUsers
         );
 
-      // Run Consistency Test when its button is clicked.
-      document
-        .getElementById('runConsistency')
-        .addEventListener(
-          'click',
-          runConsistencyTest
+    }
+
+
+    document.getElementById(
+        "consistencyResult"
+    ).innerHTML =
+        "<div class=\"" +
+        (
+            passed
+                ? "passed"
+                : "failed"
+        ) +
+        "\">" +
+        "Consistency Test: " +
+        (
+            passed
+                ? "PASSED"
+                : "FAILED"
+        ) +
+        "</div>" +
+
+        "<p>Total users tested: " +
+        config.totalUsers +
+        "</p>" +
+
+        "<p>Total assignments: " +
+        totalAssignments +
+        "</p>" +
+
+        "<p>Inconsistent users: " +
+        inconsistentUsers.length +
+        "</p>";
+
+
+    return summary;
+
+}
+
+
+/*
+====================================================================
+ASSIGNMENT INSPECTION
+====================================================================
+
+Purpose:
+
+Show exactly how individual users are assigned.
+
+This is particularly useful for explaining the solution during
+a presentation.
+
+For each user we display:
+
+    User ID
+    Experiment ID
+    Hash
+    Bucket
+    Assigned Model
+
+This makes the assignment process transparent.
+====================================================================
+*/
+
+async function assignmentInspection(
+    config
+) {
+
+    printHeader(
+        "ASSIGNMENT INSPECTION"
+    );
+
+
+    var inspection = [];
+
+
+    for (
+        var i = 1;
+        i <= config.inspectionUsers;
+        i++
+    ) {
+
+        var result =
+            await assignUser(
+                "simulation_user_" + i,
+                config
+            );
+
+
+        inspection.push({
+
+            UserID:
+                result.userId,
+
+            ExperimentID:
+                result.experimentId,
+
+            Hash:
+                result.hash,
+
+            Bucket:
+                result.bucket,
+
+            AssignedModel:
+                result.model
+
+        });
+
+    }
+
+
+    log(
+        "Assignment inspection:",
+        inspection
+    );
+
+
+    renderTable(
+        "inspectionResult",
+        inspection
+    );
+
+
+    return inspection;
+
+}
+
+
+/*
+====================================================================
+RENDER TABLE
+====================================================================
+
+Generic helper function used to display JavaScript arrays as HTML
+tables.
+
+It is not part of the A/B assignment algorithm.
+It only makes the simulation easier to present.
+====================================================================
+*/
+
+function renderTable(
+    elementId,
+    rows
+) {
+
+    var element =
+        document.getElementById(
+            elementId
         );
 
-      // Generate Assignment Inspection data when its button is clicked.
-      document
-        .getElementById('runAssignments')
-        .addEventListener(
-          'click',
-          runAssignmentTest
+
+    if (
+        !rows ||
+        rows.length === 0
+    ) {
+
+        element.innerHTML =
+            "No data.";
+
+        return;
+
+    }
+
+
+    var columns =
+        Object.keys(rows[0]);
+
+
+    var html =
+        "<table>" +
+        "<thead><tr>";
+
+
+    columns.forEach(
+        function(column) {
+
+            html +=
+                "<th>" +
+                escapeHtml(column) +
+                "</th>";
+
+        }
+    );
+
+
+    html +=
+        "</tr></thead><tbody>";
+
+
+    rows.forEach(
+        function(row) {
+
+            html +=
+                "<tr>";
+
+
+            columns.forEach(
+                function(column) {
+
+                    html +=
+                        "<td>" +
+                        escapeHtml(
+                            String(
+                                row[column]
+                            )
+                        ) +
+                        "</td>";
+
+                }
+            );
+
+
+            html +=
+                "</tr>";
+
+        }
+    );
+
+
+    html +=
+        "</tbody></table>";
+
+
+    element.innerHTML =
+        html;
+
+}
+
+
+/*
+====================================================================
+ESCAPE HTML
+====================================================================
+
+Prevents values displayed inside HTML tables from being interpreted
+as HTML.
+
+This is a display/security helper and is not part of the hashing
+algorithm.
+====================================================================
+*/
+
+function escapeHtml(value) {
+
+    return value
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
         );
 
-      // Move one page backward in the consistency table.
-      document
-        .getElementById('consistencyPrev')
-        .addEventListener(
-          'click',
-          function () {
-            consistencyPage--;
-            renderConsistencyTable();
-          }
+}
+
+
+/*
+====================================================================
+PRINT CONFIGURATION
+====================================================================
+*/
+
+function printConfiguration(
+    config
+) {
+
+    printHeader(
+        "CONFIGURATION"
+    );
+
+
+    log(
+        "Experiment ID:",
+        config.experimentId
+    );
+
+
+    log(
+        "Total users:",
+        config.totalUsers
+    );
+
+
+    log(
+        "Models:",
+        config.models
+    );
+
+}
+
+
+/*
+====================================================================
+RUN COMPLETE SIMULATION
+====================================================================
+
+This is the main controller.
+
+It executes the three tests in order:
+
+    1. Distribution Simulation
+    2. Full Consistency Test
+    3. Assignment Inspection
+
+If configuration validation fails, the simulation stops and an
+error is displayed.
+====================================================================
+*/
+
+async function runSimulation() {
+
+    // Clear previous output.
+    consoleOutput.textContent = "";
+
+
+    try {
+
+        // Read current configuration.
+        var config =
+            getConfig();
+
+
+        // Validate configuration.
+        validateConfig(
+            config
         );
 
-      // Move one page forward in the consistency table.
-      document
-        .getElementById('consistencyNext')
-        .addEventListener(
-          'click',
-          function () {
-            consistencyPage++;
-            renderConsistencyTable();
-          }
+
+        // Show configuration.
+        printConfiguration(
+            config
         );
 
-      // Move one page backward in the assignment table.
-      document
-        .getElementById('assignmentPrev')
-        .addEventListener(
-          'click',
-          function () {
-            assignmentPage--;
-            renderAssignmentTable();
-          }
+
+        // --------------------------------------------------------
+        // TEST 1
+        // --------------------------------------------------------
+
+        await distributionSimulation(
+            config
         );
 
-      // Move one page forward in the assignment table.
-      document
-        .getElementById('assignmentNext')
-        .addEventListener(
-          'click',
-          function () {
-            assignmentPage++;
-            renderAssignmentTable();
-          }
+
+        // --------------------------------------------------------
+        // TEST 2
+        // --------------------------------------------------------
+
+        await fullConsistencyTest(
+            config
         );
 
-      // Change the number of visible consistency rows per page.
-      document
-        .getElementById('consistencyPageSize')
-        .addEventListener(
-          'change',
-          function () {
-            consistencyPage = 1;
-            renderConsistencyTable();
-          }
+
+        // --------------------------------------------------------
+        // TEST 3
+        // --------------------------------------------------------
+
+        await assignmentInspection(
+            config
         );
 
-      // Change the number of visible assignment rows per page.
-      document
-        .getElementById('assignmentPageSize')
-        .addEventListener(
-          'change',
-          function () {
-            assignmentPage = 1;
-            renderAssignmentTable();
-          }
+
+        // --------------------------------------------------------
+        // Final summary
+        // --------------------------------------------------------
+
+        printHeader(
+            "SIMULATION COMPLETED"
         );
 
-      /*
-       * Run only the distribution test automatically when the page opens.
-       * The consistency and assignment tests require the user to click
-       * their buttons because they may involve a larger population.
-       */
-      runDistributionTest();
 
-    })();
-  </script>
+        log(
+            "Distribution Simulation: COMPLETED"
+        );
+
+
+        log(
+            "Full Consistency Test: PASSED"
+        );
+
+
+        log(
+            "Assignment Inspection: COMPLETED"
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Simulation Error:",
+            error
+        );
+
+
+        log(
+            "ERROR: " +
+            error.message
+        );
+
+    }
+
+}
+
+
+/*
+====================================================================
+INITIALIZE PAGE
+====================================================================
+
+Render the default models when the page opens.
+====================================================================
+*/
+
+renderModelConfig();
+
+</script>
+
 </body>
 </html>
