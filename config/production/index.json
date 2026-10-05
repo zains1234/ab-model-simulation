@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "config_version": 1791179100130,
+  "generated_at": "2026-10-05T05:45:00.130Z",
+  "experiments": [
+    {
+      "id": "recommendation_detikcom_news_001",
+      "version": 5,
+      "status": "active",
+      "config_url": "./experiments/recommendation_detikcom_news_001/v5.json"
+    }
+  ]
+}

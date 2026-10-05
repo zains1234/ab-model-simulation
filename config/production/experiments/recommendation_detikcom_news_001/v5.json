@@ -1,0 +1,62 @@
+{
+  "schema_version": 2,
+  "id": "recommendation_detikcom_news_001",
+  "name": "Detikcom News Recommendation Model Test",
+  "version": 5,
+  "status": "active",
+  "target": {
+    "portal": "detikcom",
+    "section": "news",
+    "feature": "recommendation",
+    "placement": "newsfeed"
+  },
+  "models": [
+    {
+      "name": "modelA",
+      "percentage": 30
+    },
+    {
+      "name": "modelB",
+      "percentage": 30
+    }
+  ],
+  "recommendations": {
+    "newsfeed": {
+      "type": "static",
+      "src": "internal",
+      "url": "https://docs.google.com/spreadsheets/d/1pkoxZ9raJ-a1XF6bngm7hQKmkxRQRna8qeOLlNjjTa8/edit?gid=714103575#gid=714103575",
+      "tracking_rec": "model"
+    },
+    "test": {
+      "type": "experiment",
+      "models": {
+        "modelA": {
+          "src": "internal",
+          "url": "https://docs.google.com/spreadsheets/d/1pkoxZ9raJ-a1XF6bngm7hQKmkxRQRna8qeOLlNjjTa8/edit?gid=714103575#gid=714103575",
+          "tracking_rec": "modelA"
+        },
+        "modelB": {
+          "src": "internal",
+          "url": "https://docs.google.com/spreadsheets/d/1pkoxZ9raJ-a1XF6bngm7hQKmkxRQRna8qeOLlNjjTa8/edit?gid=714103575#gid=714103575",
+          "tracking_rec": "modelB"
+        }
+      }
+    },
+    "popular": {
+      "type": "experiment",
+      "models": {
+        "modelA": {
+          "src": "internal",
+          "url": "https://docs.google.com/spreadsheets/d/1pkoxZ9raJ-a1XF6bngm7hQKmkxRQRna8qeOLlNjjTa8/edit?gid=714103575#gid=714103575",
+          "tracking_rec": "modelA"
+        },
+        "modelB": {
+          "src": "internal",
+          "url": "https://docs.google.com/spreadsheets/d/1pkoxZ9raJ-a1XF6bngm7hQKmkxRQRna8qeOLlNjjTa8/edit?gid=714103575#gid=714103575",
+          "tracking_rec": "modelB"
+        }
+      }
+    }
+  },
+  "updated_at": "2026-10-05T05:44:57.962Z"
+}

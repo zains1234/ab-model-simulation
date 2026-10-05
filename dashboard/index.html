@@ -1,0 +1,1434 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Recommendation Experiment Dashboard</title>
+    <style>
+      body {
+        font-family: system-ui;
+        margin: 0;
+        background: #f5f7fb;
+        color: #172033;
+      }
+      header {
+        background: #111827;
+        color: white;
+        padding: 22px;
+      }
+      main {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 16px;
+      }
+      .p {
+        background: white;
+        border: 1px solid #e4e8ef;
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        padding: 9px;
+        border: 1px solid #ccd3df;
+        border-radius: 7px;
+        box-sizing: border-box;
+      }
+      button {
+        cursor: pointer;
+        background: white;
+        font-weight: 600;
+      }
+      .primary {
+        background: #2563eb;
+        color: white;
+      }
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .toolbar input {
+        flex: 1;
+        min-width: 220px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #e4e8ef;
+        text-align: left;
+      }
+      .badge {
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 12px;
+      }
+      .active {
+        background: #dcfce7;
+      }
+      .draft {
+        background: #e5e7eb;
+      }
+      .paused {
+        background: #fef3c7;
+      }
+      .completed {
+        background: #dbeafe;
+      }
+      .archived {
+        background: #ede9fe;
+      }
+      .hidden {
+        display: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+      .card {
+        border: 1px solid #e4e8ef;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+      }
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .model-row,
+      .rec-model-row {
+        display: grid;
+        grid-template-columns: 1fr 140px 1fr auto;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .rec-model-row {
+        grid-template-columns: 180px 1fr;
+      }
+      .model-name {
+        font-weight: 600;
+      }
+      .model-meta {
+        font-size: 12px;
+        color: #687386;
+      }
+      .total {
+        margin-top: 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .muted {
+        color: #687386;
+        font-size: 13px;
+      }
+      .hint {
+        color: #687386;
+        font-size: 12px;
+        margin: 4px 0 10px;
+      }
+      pre {
+        background: #111827;
+        color: #eee;
+        padding: 12px;
+        overflow: auto;
+      }
+      .input-container {
+        display: flex;
+        flex-direction: column;
+      }
+      .action-btn {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      @media (max-width: 800px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .model-row {
+          grid-template-columns: 1fr 120px 1fr auto;
+        }
+        .rec-model-row {
+          grid-template-columns: 130px 1fr;
+        }
+      }
+      @media (max-width: 550px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .model-row,
+        .rec-model-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>Recommendation Experiment Dashboard</h1>
+    </header>
+    <main>
+      <div class="p toolbar">
+        <input id="search_exp" placeholder="Search experiment" />
+        <select id="select_exp">
+          <option value="">All</option>
+          <option>draft</option>
+          <option>active</option>
+          <option>paused</option>
+          <option>completed</option>
+          <option>archived</option>
+        </select
+        ><button class="primary" onclick="newExperiment()">+ New</button
+        ><button onclick="exportManifest()">Export Manifest</button
+        ><button onclick="exportAll()">Export All</button>
+      </div>
+      <div class="p">
+        <h2>Experiments</h2>
+        <div style="overflow: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Target</th>
+                <th>Version</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="experiment_rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="experiment_editor_section" class="p hidden">
+        <h2 id="create_edit_experiment">Experiment</h2>
+        <div class="grid">
+          <div class="input-container">
+            <label>ID</label>
+            <input id="experiment_id" />
+          </div>
+          <div class="input-container">
+            <label>Name</label>
+            <input id="experiment_name" />
+          </div>
+          <div class="input-container">
+            <label>Status</label>
+            <select id="experiment_status">
+              <option>draft</option>
+              <option>active</option>
+              <option>paused</option>
+              <option>completed</option>
+              <option>archived</option>
+            </select>
+          </div>
+          <div class="input-container">
+            <label>Version</label>
+            <input id="experiment_version" type="number" />
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">
+            <b>Targeting</b
+            ><button type="button" onclick="addExpTarget()">+ Dimension</button>
+          </div>
+          <div class="hint">
+            Every target dimension must match the runtime context. Add only
+            dimensions that this experiment needs.
+          </div>
+          <div id="experiment_target"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">
+            <b>Models</b
+            ><button type="button" onclick="addModel()">+ Model</button>
+          </div>
+          <div class="hint">
+            Models are defined once for the experiment. Percentages control
+            deterministic assignment and automatically apply to every
+            recommendation below.
+          </div>
+          <div id="model_list_section"></div>
+          <div id="model_total" class="total"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">
+            <b>Recommendations</b
+            ><button type="button" onclick="addRec()">+ Recommendation</button>
+          </div>
+          <div class="hint">
+            Add recommendation keys and choose whether each recommendation is
+            experiment-based or static. Experiment recommendations use the models
+            defined above. Static recommendations use a single URL and customizable
+            tracking_rec.
+          </div>
+          <div id="recomendation_list_section"></div>
+        </div>
+        <p id="valid"></p>
+        <button class="primary" onclick="saveExperiment()">Save</button>
+        <button onclick="closeExperiment()">Close</button>
+      </div>
+      <div class="p">
+        <h2>Simulation</h2>
+        <div class="grid">
+          <div class="input-container">
+            <label>Experiment ID</label>
+            <input id="simulation_id" value="recommendation_detikcom_news_001" />
+          </div>
+          <div class="input-container">
+            <label>User ID</label>
+            <input id="simulation_user_id" value="123456" />
+          </div>
+          <div class="input-container">
+            <label>Users</label>
+            <input id="total_users" type="number" value="1000" />
+          </div>
+          <div class="input-container">
+            <label>Context JSON</label>
+            <input
+              id="context"
+              value='{"portal":"detikcom","section":"news","feature":"recommendation","placement":"newsfeed"}'
+            />
+          </div>
+        </div>
+        <p>
+          <button class="primary" onclick="distribution()">Distribution</button>
+          <button onclick="inspect()">Inspect</button>
+          <button onclick="consistency()">Consistency</button>
+        </p>
+        <pre id="simulation_output">Ready.</pre>
+      </div>
+    </main>
+    <script src="../sdk/recommendation-sdk.js"></script>
+    <script>
+      const CONFIG_URL = new URL(
+        "../config/production/index.json",
+        window.location.href
+      ).href;
+      let experiments = [];
+      let editingId = null;
+
+      async function loadConfiguration() {
+        try {
+
+          const response = await fetch(CONFIG_URL);
+
+          if (!response.ok) {
+            throw new Error(
+              "Failed to load configuration: HTTP " + response.status
+            );
+          }
+
+          const manifest = await response.json();
+
+          if (manifest.schema_version !== 2) {
+            throw new Error(
+              "Unsupported configuration schema: " +
+              manifest.schema_version
+            );
+          }
+
+          experiments = [];
+
+          for (const manifestExperiment of manifest.experiments || []) {
+
+            const response = await fetch(
+              new URL(
+                manifestExperiment.config_url,
+                CONFIG_URL
+              )
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                "Failed to load experiment: " +
+                manifestExperiment.id
+              );
+            }
+
+            const experiment = await response.json();
+
+            experiments.push(
+              migrateExperiment(experiment)
+            );
+          }
+
+          render();
+
+        } catch (error) {
+
+          console.error("Configuration loading failed:", error);
+
+          document.getElementById("list").innerHTML =
+            '<div class="empty">' +
+            'Failed to load configuration.<br>' +
+            escapeHtml(error.message) +
+            "</div>";
+        }
+      }
+      function migrateExperiment(exp_item) {
+        exp_item = exp_item || {};
+        if (!Array.isArray(exp_item.models)) {
+          const first = Object.values(exp_item.recommendations || {}).find(
+            (rec_item) => rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models),
+          );
+          exp_item.models = (first ? first.models : []).map((model_item) => ({
+            name: model_item.name,
+            percentage: Number(model_item.percentage),
+          }));
+        }
+        exp_item.models = exp_item.models.map((model_item) => ({
+          name: String(model_item.name || ""),
+          percentage: Number(model_item.percentage || 0),
+        }));
+        Object.keys(exp_item.recommendations || {}).forEach((rec_key) => {
+          const rec_item = exp_item.recommendations[rec_key];
+          if (rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models)) {
+            const map = {};
+            rec_item.models.forEach((model_item) => {
+              map[model_item.name] = {
+                src: model_item.src || "internal",
+                url: model_item.url || "",
+                tracking_rec: model_item.tracking_rec || model_item.name,
+              };
+            });
+            exp_item.recommendations[rec_key] = { type: "experiment", models: map };
+          }
+        });
+        exp_item.schema_version = 2;
+        return exp_item;
+      }
+      function escapeHtml(x) {
+        return String(x ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+      function save() {
+        render();
+      }
+      function render() {
+        const search_exp = document.getElementById("search_exp").value.toLowerCase(),
+          select_exp = document.getElementById("select_exp").value;
+        const exp_filter = experiments.filter(
+          (exp_item) =>
+            (!select_exp || exp_item.status === select_exp) &&
+            (!search_exp || (exp_item.id + " " + exp_item.name).toLowerCase().includes(search_exp)),
+        );
+        document.getElementById("experiment_rows").innerHTML =
+          exp_filter
+            .map(
+              (exp_item) =>
+                `<tr>
+                  <td>
+                    <b>${escapeHtml(exp_item.name)}</b>
+                    <div class="muted">${escapeHtml(exp_item.id)}</div>
+                  </td>
+                  <td>
+                    <span class="badge ${exp_item.status}">${exp_item.status}</span>
+                  </td>
+                  <td>
+                    ${escapeHtml(
+                      Object.entries(exp_item.target || {})
+                        .map((x) => x[0] + "=" + x[1])
+                        .join(", ") || "All",
+                    )}
+                  </td>
+                  <td>
+                    v${exp_item.version}
+                  </td>
+                  <td class="action-btn">
+                    <button onclick="editExperiment('${escapeHtml(exp_item.id)}')">
+                      Edit
+                    </button>
+                    ${exp_item.status === "draft" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Start</button>` : ""}
+                    ${exp_item.status === "active" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','paused')">Pause</button>` : ""}
+                    ${exp_item.status === "paused" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Resume</button>` : ""}
+                    ${["active", "paused"].includes(exp_item.status) ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','completed')">Complete</button>` : ""}
+                    ${exp_item.status !== "archived" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','archived')">Archive</button>` : ""}
+                    <button onclick="duplicateExperiment('${escapeHtml(exp_item.id)}')">Duplicate</button>
+                  </td>
+                </tr>`,
+            )
+            .join("") || '<tr><td colspan="5">No experiments</td></tr>';
+      }
+      search_exp.oninput = render;
+      select_exp.onchange = render;
+      function newExperiment() {
+        editingId = null;
+        document.getElementById("create_edit_experiment").textContent = "Create Experiment";
+        document.getElementById("experiment_id").value = "experiment_" + Date.now();
+        document.getElementById("experiment_name").value = "New Experiment";
+        document.getElementById("experiment_status").value = "draft";
+        document.getElementById("experiment_version").value = 1;
+        renderExpTarget({});
+        renderExpModels(
+          [
+            { name: "modelA", percentage: 50 },
+            { name: "modelB", percentage: 50 },
+          ],
+          { newsfeed: { type: "experiment", models: {} } },
+        );
+        document.getElementById("experiment_editor_section").classList.remove("hidden");
+      }
+      function editExperiment(exp_id) {
+        const experiment_data = experiments.find((exp_item) => exp_item.id === exp_id);
+        if (!experiment_data) return;
+        editingId = exp_id;
+        document.getElementById("create_edit_experiment").textContent = "Edit Experiment";
+        document.getElementById("experiment_id").value = experiment_data.id;
+        document.getElementById("experiment_name").value = experiment_data.name;
+        document.getElementById("experiment_status").value = experiment_data.status;
+        document.getElementById("experiment_version").value = experiment_data.version;
+        renderExpTarget(experiment_data.target || {});
+        renderExpModels(experiment_data.models || [], experiment_data.recommendations || {});
+        document.getElementById("experiment_editor_section").classList.remove("hidden");
+      }
+      function closeExperiment() {
+        document.getElementById("experiment_editor_section").classList.add("hidden");
+      }
+      function renderExpTarget(exp_target) {
+        document.getElementById("experiment_target").innerHTML = "";
+        Object.entries(exp_target).forEach(([key, value]) => {
+          addExpTarget(key, value);
+        });
+      }
+      function addExpTarget(key = "", value = "") {
+        const exp_target_item = document.createElement("div");
+        exp_target_item.style.marginTop = "8px";
+        exp_target_item.innerHTML = `
+          <input class="target-key" placeholder="key" value="${escapeHtml(key)}">
+          <input class="target-value" placeholder="value" value="${escapeHtml(value)}">
+          <button type="button" onclick="this.parentNode.remove()">
+            ×
+          </button>
+        `;
+        document.getElementById("experiment_target").appendChild(exp_target_item);
+      }
+      function currentModels() {
+        return [...document.querySelectorAll("#model_list_section>.model-row")].map(
+          (model_item) => ({
+            name: model_item.querySelector(".model-name").value.trim(),
+            percentage: Number(model_item.querySelector(".model-percentage").value),
+          }),
+        );
+      }
+      function currentRecommendations() {
+        const rec_data = {};
+
+        document
+          .querySelectorAll("#recomendation_list_section > .card")
+          .forEach((rec_item) => {
+
+            const rec_name =
+              rec_item.querySelector(".recomendation-name")?.value.trim();
+
+            if (!rec_name) return;
+
+            const type =
+              rec_item.querySelector(".recommendation-type")?.value ||
+              "experiment";
+
+            // ==========================================
+            // STATIC RECOMMENDATION
+            // ==========================================
+
+            if (type === "static") {
+
+              rec_data[rec_name] = {
+                type: "static",
+                src:
+                  rec_item.querySelector(".rec-static-src")?.value.trim() ||
+                  "internal",
+
+                url:
+                  rec_item.querySelector(".rec-static-url")?.value.trim() ||
+                  "",
+
+                tracking_rec:
+                  rec_item.querySelector(".rec-static-tracking")?.value.trim() ||
+                  ""
+              };
+
+              return;
+            }
+
+            // ==========================================
+            // EXPERIMENT RECOMMENDATION
+            // ==========================================
+
+            const models = {};
+
+            rec_item
+              .querySelectorAll(".rec-model-row")
+              .forEach((model_item) => {
+
+                const model_name = model_item.dataset.model;
+
+                models[model_name] = {
+                  src: "internal",
+                  url:
+                    model_item.querySelector(".rec-model-url")?.value.trim() ||
+                    "",
+                  tracking_rec: model_name
+                };
+              });
+
+            rec_data[rec_name] = {
+              type: "experiment",
+              models
+            };
+          });
+
+        return rec_data;
+      }
+      function renderExpModels(models, recs) {
+        const models_box = document.getElementById("model_list_section");
+        models_box.innerHTML = "";
+        models.forEach((model_item) => models_box.appendChild(renderModelRow(model_item)));
+        updateModelTotalPercentage();
+        syncRecommendations(recs || currentRecommendations());
+      }
+      function addModel(name, percentage, rerender = true) {
+        const models = currentModels();
+        if (!name) {
+          let i = 65;
+          do {
+            name = "model" + String.fromCharCode(i++);
+          } while (models.some((model_item) => model_item.name === name));
+        }
+        models.push({ name, percentage: Number(percentage || 0) });
+        const recs = currentRecommendations();
+        renderExpModels(models, recs);
+        if (rerender) updateModelTotalPercentage();
+      }
+      function removeModel(name) {
+        const models =
+          currentModels().filter(
+            (model_item) => model_item.name !== name
+          );
+
+        if (models.length < 2) {
+          alert("At least 2 models are required.");
+          return;
+        }
+
+        const recs =
+          currentRecommendations();
+
+        Object.values(recs).forEach((rec_item) => {
+
+          if (
+            rec_item.type === "experiment" &&
+            rec_item.models
+          ) {
+            delete rec_item.models[name];
+          }
+
+        });
+
+        renderExpModels(models, recs);
+      }
+      function renameModel(oldName, newName) {
+        newName = newName.trim();
+
+        if (!newName || newName === oldName) {
+          return;
+        }
+
+        const models =
+          currentModels();
+
+        if (
+          models.some(
+            (model_item) =>
+              model_item.name === newName
+          )
+        ) {
+
+          alert("Model names must be unique.");
+
+          renderExpModels(
+            models,
+            currentRecommendations()
+          );
+
+          return;
+        }
+
+        const recs =
+          currentRecommendations();
+
+        Object.values(recs).forEach((rec_item) => {
+
+          if (
+            rec_item.type === "experiment" &&
+            rec_item.models &&
+            rec_item.models[oldName]
+          ) {
+
+            rec_item.models[newName] =
+              rec_item.models[oldName];
+
+            delete rec_item.models[oldName];
+
+            rec_item.models[newName].tracking_rec =
+              newName;
+          }
+
+        });
+
+        renderExpModels(
+          models.map((model_item) =>
+            model_item.name === oldName
+              ? {
+                  name: newName,
+                  percentage: model_item.percentage
+                }
+              : model_item
+          ),
+          recs
+        );
+      }
+      function bindModelRows() {
+        document.querySelectorAll("#model_list_section .model-name").forEach((input) => {
+          input.onchange = () =>
+            renameModel(input.dataset.original, input.value);
+        });
+        document
+          .querySelectorAll("#model_list_section .model-percentage")
+          .forEach((input) => (input.oninput = updateModelTotalPercentage));
+      }
+      function renderModelRow(model_item) {
+        const model_el = document.createElement("div");
+        model_el.className = "model-row";
+        model_el.innerHTML = `
+          <input class="model-name" data-original="${escapeHtml(model_item.name)}" value="${escapeHtml(model_item.name)}">
+          <input class="model-percentage" type="number" min="0" step="0.01" value="${Number(model_item.percentage)}">
+          <div class="model-meta">
+            Used by every experiment recommendation
+          </div>
+          <button type="button" onclick="removeModel('${escapeHtml(model_item.name)}')">
+            ×
+          </button>
+        `;
+        return model_el;
+      }
+      function updateModelTotalPercentage() {
+        const total = currentModels().reduce(
+          (result, model_item) => result + Number(model_item.percentage || 0),
+          0,
+        );
+        const remaining = Math.max(0, 100 - total);
+        const valid_total = total > 0 && total <= 100 + 1e-9;
+
+        document.getElementById("model_total").textContent =
+          "Total: " +
+          total +
+          "%" +
+          (valid_total
+            ? " ✓ — Unassigned: " + remaining.toFixed(2) + "%"
+            : " — must be greater than 0% and no more than 100%");
+        bindModelRows();
+      }
+      function syncRecommendations(recs) {
+        const normalized = recs || {};
+        document.getElementById("recomendation_list_section").innerHTML = "";
+        Object.entries(normalized).forEach(([key, value]) => addRec(key, value, false));
+        updateModelTotalPercentage();
+      }
+      function addRec(key = "recommendation", value = null, rerender = true) {
+        const existing = currentRecommendations();
+
+        let key_value = key;
+        let n = 1;
+
+        while (existing[key_value]) {
+          key_value = key + n++;
+        }
+
+        const models = currentModels();
+
+        const recommendation_type =
+          value && value.type
+            ? value.type
+            : "experiment";
+
+        const recommendation_section =
+          document.createElement("div");
+
+        recommendation_section.className = "card";
+
+        recommendation_section.innerHTML = `
+          <div class="section-title">
+
+            <div style="display:flex; gap:8px; flex:1;">
+
+              <input
+                class="recomendation-name"
+                placeholder="Recommendation key"
+                value="${escapeHtml(key_value)}"
+              >
+
+              <select class="recommendation-type">
+                <option
+                  value="experiment"
+                  ${recommendation_type === "experiment" ? "selected" : ""}
+                >
+                  experiment
+                </option>
+
+                <option
+                  value="static"
+                  ${recommendation_type === "static" ? "selected" : ""}
+                >
+                  static
+                </option>
+              </select>
+
+            </div>
+
+            <button
+              type="button"
+              onclick="this.closest('.card').remove()"
+            >
+              Remove
+            </button>
+
+          </div>
+
+          <div class="rec-model-list"></div>
+        `;
+
+        document
+          .getElementById("recomendation_list_section")
+          .appendChild(recommendation_section);
+
+        const type_select =
+          recommendation_section.querySelector(".recommendation-type");
+
+        // Render the correct fields initially
+        renderRecommendationFields(
+          recommendation_section,
+          recommendation_type,
+          models,
+          value
+        );
+
+        // Change between experiment and static
+        type_select.addEventListener("change", function () {
+
+          const current_value = currentRecommendations()[key_value];
+
+          renderRecommendationFields(
+            recommendation_section,
+            this.value,
+            models,
+            current_value
+          );
+
+        });
+
+        if (rerender) {
+          updateModelTotalPercentage();
+        }
+      }
+      function renderRecommendationFields(
+        recommendation_section,
+        recommendation_type,
+        models,
+        value = null
+      ) {
+
+        const list =
+          recommendation_section.querySelector(".rec-model-list");
+
+        list.innerHTML = "";
+
+        // ==========================================
+        // STATIC
+        // ==========================================
+
+        if (recommendation_type === "static") {
+
+          const source =
+            value && value.type === "static"
+              ? value
+              : {};
+
+          const row = document.createElement("div");
+
+          row.className = "rec-static-fields";
+
+          row.innerHTML = `
+            <div class="input-container">
+              <label>Source</label>
+
+              <input
+                class="rec-static-src"
+                placeholder="internal"
+                value="${escapeHtml(source.src || "internal")}"
+              >
+            </div>
+
+            <div class="input-container">
+              <label>URL</label>
+
+              <input
+                class="rec-static-url"
+                placeholder="https://..."
+                value="${escapeHtml(source.url || "")}"
+              >
+            </div>
+
+            <div class="input-container">
+              <label>Tracking Rec</label>
+
+              <input
+                class="rec-static-tracking"
+                placeholder="tracking_rec"
+                value="${escapeHtml(source.tracking_rec || "")}"
+              >
+            </div>
+          `;
+
+          list.appendChild(row);
+
+          return;
+        }
+
+        // ==========================================
+        // EXPERIMENT
+        // ==========================================
+
+        const source =
+          value && value.type === "experiment" && value.models
+            ? value.models
+            : {};
+
+        models.forEach((model_item) => {
+
+          const saved =
+            source[model_item.name] || {};
+
+          const row =
+            document.createElement("div");
+
+          row.className = "rec-model-row";
+
+          row.dataset.model =
+            model_item.name;
+
+          row.innerHTML = `
+            <div>
+
+              <div class="model-name">
+                ${escapeHtml(model_item.name)}
+              </div>
+
+              <div class="model-meta">
+                URL for ${escapeHtml(model_item.name)}
+              </div>
+
+            </div>
+
+            <input
+              class="rec-model-url"
+              placeholder="https://..."
+              value="${escapeHtml(saved.url || "")}"
+            >
+          `;
+
+          list.appendChild(row);
+        });
+      }
+      function collectExpData() {
+        const target_data = {};
+        document.querySelectorAll(".target-key").forEach((item, idx) => {
+          const v = document.querySelectorAll(".target-value")[idx];
+          if (item.value.trim()) target_data[item.value.trim()] = v.value.trim();
+        });
+        return {
+          schema_version: 2,
+          id: document.getElementById("experiment_id").value.trim(),
+          name: document.getElementById("experiment_name").value.trim(),
+          version: Number(document.getElementById("experiment_version").value),
+          status: document.getElementById("experiment_status").value,
+          target: target_data,
+          models: currentModels(),
+          recommendations: currentRecommendations(),
+        };
+      }
+      function validate(exp_data) {
+        const error_list = [];
+
+        // ==========================================
+        // EXPERIMENT BASIC INFORMATION
+        // ==========================================
+
+        if (!exp_data.id) {
+          error_list.push("ID required");
+        }
+
+        if (!exp_data.name) {
+          error_list.push("Name required");
+        }
+
+        // ==========================================
+        // MODELS
+        // ==========================================
+
+        if (exp_data.models.length < 2) {
+          error_list.push(
+            "At least 2 models required"
+          );
+        }
+
+        const names =
+          exp_data.models.map(
+            (model_item) => model_item.name
+          );
+
+        if (names.some((name) => !name)) {
+          error_list.push(
+            "Model names are required"
+          );
+        }
+
+        if (
+          new Set(names).size !== names.length
+        ) {
+          error_list.push(
+            "Model names must be unique"
+          );
+        }
+
+        const total =
+          exp_data.models.reduce(
+            (result, model_item) =>
+              result +
+              Number(model_item.percentage || 0),
+            0
+          );
+
+        if (total <= 0) {
+          error_list.push(
+            "Model percentages must be greater than 0% in total"
+          );
+        }
+
+        if (total > 100 + 1e-9) {
+          error_list.push(
+            "Model percentages must not exceed 100%"
+          );
+        }
+
+        // ==========================================
+        // RECOMMENDATIONS
+        // ==========================================
+
+        if (
+          !Object.keys(
+            exp_data.recommendations
+          ).length
+        ) {
+
+          error_list.push(
+            "At least 1 recommendation required"
+          );
+        }
+
+        Object.entries(
+          exp_data.recommendations
+        ).forEach(([key, value]) => {
+
+          if (!key) {
+            error_list.push(
+              "Recommendation key is required"
+            );
+            return;
+          }
+
+          // ========================================
+          // STATIC VALIDATION
+          // ========================================
+
+          if (value.type === "static") {
+
+            if (
+              !String(value.url || "").trim()
+            ) {
+
+              error_list.push(
+                key + ": URL required"
+              );
+            }
+
+            if (
+              !String(
+                value.tracking_rec || ""
+              ).trim()
+            ) {
+
+              error_list.push(
+                key +
+                ": Tracking Rec required"
+              );
+            }
+
+            return;
+          }
+
+          // ========================================
+          // EXPERIMENT VALIDATION
+          // ========================================
+
+          if (value.type === "experiment") {
+
+            if (!value.models) {
+
+              error_list.push(
+                key +
+                ": model configuration required"
+              );
+
+              return;
+            }
+
+            exp_data.models.forEach(
+              (model_item) => {
+
+                const model_config =
+                  value.models[
+                    model_item.name
+                  ];
+
+                if (
+                  !model_config ||
+                  !String(
+                    model_config.url || ""
+                  ).trim()
+                ) {
+
+                  error_list.push(
+                    key +
+                    ": URL required for " +
+                    model_item.name
+                  );
+                }
+
+              }
+            );
+
+            return;
+          }
+
+          // ========================================
+          // UNKNOWN TYPE
+          // ========================================
+
+          error_list.push(
+            key +
+            ": Invalid recommendation type"
+          );
+
+        });
+
+        // ==========================================
+        // DISPLAY VALIDATION RESULT
+        // ==========================================
+
+        document.getElementById("valid").innerHTML =
+          error_list.length
+
+            ? '<span style="color:#b42318">' +
+              error_list.join("<br>") +
+              "</span>"
+
+            : '<span style="color:green">' +
+              "Valid configuration ✓" +
+              "</span>";
+
+        return !error_list.length;
+      }
+      function saveExperiment() {
+        const experiment_data = collectExpData();
+        if (!validate(experiment_data)) return;
+        experiment_data.updated_at = new Date().toISOString();
+        if (editingId) {
+          const exp_index = experiments.findIndex((exp_item) => exp_item.id === editingId);
+          if (exp_index < 0) return;
+          // if (experiment_data.status === "active" && experiments[exp_index].status === "active")
+          //   experiment_data.version = experiments[exp_index].version + 1;
+          experiments[exp_index] = experiment_data;
+        } else experiments.push(experiment_data);
+        save();
+        closeExperiment();
+      }
+      function setExperimentStatus(exp_id, status) {
+        const exp_data = experiments.find((exp_item) => exp_item.id === exp_id);
+        if (["completed", "archived"].includes(exp_data.status) && status === "active") {
+          alert(
+            "This experiment is already " +
+            exp_data.status +
+            ". Duplicate it to create a new experiment."
+          );
+          return;
+        }
+        exp_data.status = status;
+        save();
+      }
+      function duplicateExperiment(exp_id) {
+        const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
+        if (!exp_data) return;
+        exp_data.id = exp_data.id + "_copy_" + Date.now();
+        exp_data.name += " (Copy)";
+        exp_data.status = "draft";
+        exp_data.version = 1;
+        experiments.push(exp_data);
+        save();
+        editExperiment(exp_data.id);
+      }
+      function download(n, o) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(
+          new Blob([JSON.stringify(o, null, 2)], { type: "application/json" }),
+        );
+        a.download = n;
+        a.click();
+      }
+      function exportManifest() {
+        download("index.json", {
+          schema_version: 2,
+          config_version: Date.now(),
+          generated_at: new Date().toISOString(),
+          experiments: experiments
+            .filter((exp_item) => exp_item.status === "active")
+            .map((exp_item) => ({
+              id: exp_item.id,
+              version: exp_item.version,
+              status: exp_item.status,
+              config_url: "./experiments/" + exp_item.id + "/v" + exp_item.version + ".json",
+            })),
+        });
+      }
+      async function exportAll() {
+        if (typeof JSZip === "undefined") {
+          alert("JSZip library is not loaded.");
+          return;
+        }
+
+        const zip = new JSZip();
+
+        /*
+        * Generate index.json.
+        *
+        * Only ACTIVE experiments are included in the production manifest
+        * because the SDK should only load experiments that are currently active.
+        */
+        const manifest = {
+          schema_version: 2,
+          config_version: Date.now(),
+          generated_at: new Date().toISOString(),
+
+          experiments: experiments
+            .filter((experiment_item) => experiment_item.status === "active")
+            .map((experiment_item) => ({
+              id: experiment_item.id,
+              version: experiment_item.version,
+              status: experiment_item.status,
+              config_url:
+                "./experiments/" +
+                experiment_item.id +
+                "/v" +
+                experiment_item.version +
+                ".json",
+            })),
+        };
+
+        /*
+        * Add index.json to the root of the ZIP.
+        */
+        zip.file(
+          "index.json",
+          JSON.stringify(manifest, null, 2)
+        );
+
+        /*
+        * Add every active experiment using the same directory
+        * structure expected by the CDN.
+        */
+        experiments
+          .filter((experiment_item) => experiment_item.status === "active")
+          .forEach((experiment_item) => {
+            const experiment_path =
+              "experiments/" +
+              experiment_item.id +
+              "/v" +
+              experiment_item.version +
+              ".json";
+
+            zip.file(
+              experiment_path,
+              JSON.stringify(experiment_item, null, 2)
+            );
+          });
+
+        /*
+        * Generate the ZIP file.
+        */
+        const zip_blob = await zip.generateAsync({
+          type: "blob",
+        });
+
+        /*
+        * Download the complete production configuration.
+        */
+        const download_link = document.createElement("a");
+
+        download_link.href = URL.createObjectURL(zip_blob);
+        download_link.download = "recommendation-config-production.zip";
+
+        document.body.appendChild(download_link);
+        download_link.click();
+        download_link.remove();
+
+        /*
+        * Release the temporary object URL.
+        */
+        setTimeout(() => {
+          URL.revokeObjectURL(download_link.href);
+        }, 1000);
+      }
+      async function hash(s) {
+        return RecommendationSDK._test.sha256(s);
+      }
+      async function distribution() {
+        const exp_data = experiments.find(
+            (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+          ),
+          user_total_number = Number(document.getElementById("total_users").value);
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        if (!exp_data.models || exp_data.models.length < 2) {
+          document.getElementById("simulation_output").textContent = "No valid models";
+          return;
+        }
+        const user_distribution = { __unassigned: 0 };
+        exp_data.models.forEach((model_item) => (user_distribution[model_item.name] = 0));
+        for (let i = 1; i <= user_total_number; i++) {
+          const bucket_value = RecommendationSDK._test.bucket(
+            await hash(exp_data.id + ":sim_user_" + i),
+          );
+          const model_data = RecommendationSDK._test.select(exp_data.models, bucket_value);
+
+          // A null model means this user falls into the unassigned
+          // percentage because the configured model total is below 100%.
+          if (model_data) {
+            user_distribution[model_data.name]++;
+          } else {
+            user_distribution.__unassigned++;
+          }
+        }
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            expected: [
+              ...exp_data.models.map((model_item) => ({
+                model: model_item.name,
+                percentage: model_item.percentage,
+              })),
+              {
+                model: "__unassigned",
+                percentage: Math.max(0, 100 - exp_data.models.reduce(
+                  (total, model_item) => total + Number(model_item.percentage || 0),
+                  0,
+                )),
+              },
+            ],
+            actual: Object.fromEntries(
+              Object.entries(user_distribution).map((x) => [
+                x[0],
+                { count: x[1], percentage: ((x[1] / user_total_number) * 100).toFixed(2) },
+              ]),
+            ),
+          },
+          null,
+          2,
+        );
+      }
+      async function inspect() {
+        const exp_data = experiments.find(
+          (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+        );
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        const hash_value = await hash(exp_data.id + ":" + document.getElementById("simulation_user_id").value),
+          bucket_value = RecommendationSDK._test.bucket(hash_value),
+          model_item = RecommendationSDK._test.select(exp_data.models, bucket_value);
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            experimentId: exp_data.id,
+            userId: document.getElementById("simulation_user_id").value,
+            hash: hash_value,
+            bucket: bucket_value,
+            assignedModel: model_item ? model_item.name : null,
+            assignmentStatus: model_item ? "assigned" : "unassigned",
+            targetMatches: RecommendationSDK._test.targetMatches(
+              exp_data.target,
+              JSON.parse(document.getElementById("context").value),
+            ),
+          },
+          null,
+          2,
+        );
+      }
+      async function consistency() {
+        const exp_data = experiments.find(
+          (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+        );
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        const consistency_data = [];
+        for (let i = 0; i < 20; i++) {
+          const hash_value = await hash(
+            exp_data.id + ":" + document.getElementById("simulation_user_id").value,
+          );
+          consistency_data.push([hash_value, RecommendationSDK._test.bucket(hash_value)]);
+        }
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            passed: consistency_data.every((x) => x[0] === consistency_data[0][0] && x[1] === consistency_data[0][1]),
+            sample: consistency_data[0],
+          },
+          null,
+          2,
+        );
+      }
+      loadConfiguration();
+    </script>
+  </body>
+</html>
