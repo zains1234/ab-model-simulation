@@ -773,6 +773,7 @@ This prevents incorrect experiment configurations.
 ====================================================================
 */
 
+var totalPercentage = 0;
 function validateConfig(config) {
 
     if (!config.experimentId) {
@@ -809,10 +810,6 @@ function validateConfig(config) {
 
     }
 
-
-    var totalPercentage = 0;
-
-
     config.models.forEach(
         function(model, index) {
 
@@ -848,14 +845,10 @@ function validateConfig(config) {
     );
 
 
-    if (
-        Math.abs(
-            totalPercentage - 100
-        ) > 0.000001
-    ) {
+    if (totalPercentage > 100 + 1e-9) {
 
         throw new Error(
-            "Model percentages must equal 100%. " +
+            "Model percentages must not exceed 100%. " +
             "Current total: " +
             totalPercentage +
             "%"
@@ -1032,7 +1025,6 @@ function getModelFromBucket(
     bucket,
     configuredModels
 ) {
-
     var cumulative =
         0;
 
@@ -1062,10 +1054,7 @@ function getModelFromBucket(
     // Fallback.
     // Normally this should never be reached when percentages
     // have been validated correctly.
-    return configuredModels[
-        configuredModels.length - 1
-    ];
-
+    return null;
 }
 
 
@@ -1159,11 +1148,13 @@ async function assignUser(
         bucket:
             bucket,
 
-        model:
-            model.name,
+        model: model !== null ?
+            model.name : null,
 
-        percentage:
-            model.percentage
+        percentage: model !== null ?
+            model.percentage : (100 - totalPercentage),
+
+        assignmentStatus: model !== null ? "assigned" : "unassigned"
 
     };
 
@@ -1240,14 +1231,15 @@ async function distributionSimulation(
                 config
             );
 
-
-        counts[result.model]++;
-
+        if (result.model === null){
+            counts["__unassigned"] = counts["__unassigned"] || 0;
+            counts["__unassigned"]++;
+        } else 
+            counts[result.model]++;
     }
 
 
     var resultTable = [];
-
 
     // Calculate actual percentage.
     config.models.forEach(
@@ -1300,6 +1292,56 @@ async function distributionSimulation(
 
         }
     );
+    if (counts["__unassigned"]) {
+        var unassigned_percentage = 100 - totalPercentage
+        var actualUsers =
+            counts["__unassigned"];
+
+        var actualPercentage =
+            (
+                actualUsers /
+                config.totalUsers
+            ) * 100;
+
+
+        var difference =
+            actualPercentage -
+            unassigned_percentage;
+
+
+        resultTable.push({
+
+            Model: "Unassigned",
+
+            ExpectedUsers:
+                Math.round(
+                    config.totalUsers *
+                    unassigned_percentage /
+                    100
+                ),
+
+            ActualUsers:
+                actualUsers,
+
+            ExpectedPercentage:
+                unassigned_percentage.toFixed(2)
+                + "%",
+
+            ActualPercentage:
+                actualPercentage.toFixed(2)
+                + "%",
+
+            Difference:
+                difference.toFixed(2)
+                + "%"
+
+        });
+
+        log(
+            "Unassigned distribution:",
+            {"name":"Unassigned","percentage":unassigned_percentage}
+        );
+    }
 
 
     log(
@@ -1389,7 +1431,7 @@ async function fullConsistencyTest(
 
 
         var expectedModel =
-            firstResult.model;
+            firstResult.model === null ? "__unassigned" : firstResult.model;
 
 
         var consistent =
@@ -1409,6 +1451,8 @@ async function fullConsistencyTest(
                     userId,
                     config
                 );
+            var resultModel =
+                result.model === null ? "__unassigned" : result.model;
 
 
             totalAssignments++;
@@ -1416,7 +1460,7 @@ async function fullConsistencyTest(
 
             // Compare the new result with the first result.
             if (
-                result.model !==
+                resultModel !==
                 expectedModel
             ) {
 
@@ -1589,7 +1633,10 @@ async function assignmentInspection(
                 result.bucket,
 
             AssignedModel:
-                result.model
+                result.model === null ? null : result.model,
+
+            AssignmentStatus:
+                result.model === null ? "assigned" : "unassigned",
 
         });
 
