@@ -352,6 +352,7 @@
           S.state.assignment = {
             status: "unassigned",
             experimentId: e.id,
+            experimentName: e.name,
             experimentVersion: e.version,
             hash: h,
             bucket: b,
@@ -363,6 +364,7 @@
           S.state.assignment = {
             status: "assigned",
             experimentId: e.id,
+            experimentName: e.name,
             experimentVersion: e.version,
             hash: h,
             bucket: b,
@@ -386,6 +388,7 @@
           w.dataLayer.push({
             event: "recommendation_model_assigned",
             experiment_id: e.id,
+            experiment_name: e.name,
             experiment_version: e.version,
             assigned_model: assigned,
             bucket: b,
