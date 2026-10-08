@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "id": "recommendation_detikcom_001",
+  "name": "Detikcom Recommendation Model AB Test",
+  "event": "recommendation",
+  "version": 1,
+  "status": "active",
+  "target": {
+    "portal": "detikcom",
+    "feature": "box recommendation"
+  },
+  "models": [
+    {
+      "name": "modelA",
+      "percentage": 50
+    },
+    {
+      "name": "modelB",
+      "percentage": 50
+    }
+  ],
+  "recommendations": {
+    "newsfeed": {
+      "type": "experiment",
+      "models": {
+        "modelA": {
+          "src": "internal",
+          "url": "https://recg.detik.com/article-recommendation/wp/",
+          "tracking_rec": "modelA"
+        },
+        "modelB": {
+          "src": "internal",
+          "url": "https://rech.detik.com/article-recommendation/wp/",
+          "tracking_rec": "modelB"
+        }
+      }
+    },
+    "sticky": {
+      "type": "static",
+      "src": "internal",
+      "url": "https://recg.detik.com/article-recommendation/sticky/",
+      "tracking_rec": "model"
+    },
+    "detail": {
+      "type": "experiment",
+      "models": {
+        "modelA": {
+          "src": "internal",
+          "url": "https://recg.detik.com/article-recommendation/detail/",
+          "tracking_rec": "modelA"
+        },
+        "modelB": {
+          "src": "internal",
+          "url": "https://rech.detik.com/article-recommendation/detail/",
+          "tracking_rec": "modelB"
+        }
+      }
+    },
+    "index": {
+      "type": "static",
+      "src": "internal",
+      "url": "https://recg.detik.com/article-recommendation/index",
+      "tracking_rec": "model"
+    }
+  },
+  "updated_at": "2026-10-08T04:35:17.757Z"
+}
