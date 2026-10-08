@@ -316,7 +316,11 @@
         var candidates = (man.experiments || []).filter(function (e0) {
           return (
             e0.status === "active" &&
-            match(e0.target, ctx)
+            match(e0.target, ctx) &&
+            (
+              !o.experimentName ||
+              String(e0.name || "").trim().toLowerCase() === String(o.experimentName).trim().toLowerCase()
+            )
           );
         });
 
