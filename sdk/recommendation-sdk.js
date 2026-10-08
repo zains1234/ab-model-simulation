@@ -365,10 +365,6 @@
           S.state.status = "conflict";
           w.dsrec = {};
           w.dsrecExperiments = {};
-          w.dsrecExperiment = {
-            status: "conflict",
-            conflicts: cs,
-          };
           throw Error("Conflicting active experiments");
         }
 
@@ -388,8 +384,6 @@
             assignments: {},
           };
 
-          w.dsrecExperiment = clone(S.state.debug);
-
           return;
         }
 
@@ -407,8 +401,6 @@
             context: clone(ctx),
             assignments: {},
           };
-
-          w.dsrecExperiment = clone(S.state.debug);
 
           return;
         }
@@ -556,8 +548,6 @@
           context: clone(ctx),
           assignments: clone(assignments),
         };
-
-        w.dsrecExperiment = clone(S.state.debug);
       } catch (err) {
         S.state.status = "error";
         S.state.error = err.message;
@@ -566,11 +556,6 @@
 
         w.dsrec = w.dsrec || {};
         w.dsrecExperiments = {};
-
-        w.dsrecExperiment = {
-          status: "error",
-          message: err.message,
-        };
       } finally {
         S.state.ready = true;
 
