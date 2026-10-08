@@ -1373,7 +1373,7 @@
               // so the SDK can filter experiments before
               // downloading the full experiment JSON.
               target: exp_item.target || {},
-              experiment_keys: Object.keys(
+              recommendation_keys: Object.keys(
                 exp_item.recommendations || {}
               ),
               config_url:
@@ -1419,7 +1419,7 @@
               // which experiments are relevant before downloading
               // the full experiment configuration.
               target: experiment_item.target || {},
-              experiment_keys: Object.keys(
+              recommendation_keys: Object.keys(
                 experiment_item.recommendations || {}
               ),
               config_url:
