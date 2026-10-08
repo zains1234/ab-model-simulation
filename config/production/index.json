@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
-  "config_version": 1791443452388,
-  "generated_at": "2026-10-08T07:10:52.388Z",
+  "config_version": 1791443684432,
+  "generated_at": "2026-10-08T07:14:44.432Z",
   "experiments": [
     {
       "id": "recommendation_detikcom_001",
@@ -12,7 +12,7 @@
         "portal": "detikcom",
         "feature": "box recommendation"
       },
-      "experiment_keys": [
+      "recommendation_keys": [
         "newsfeed",
         "sticky",
         "detail",
