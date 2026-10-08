@@ -1,58 +1,24 @@
+<script src="https://zains1234.github.io/CDN/AB-Model/sdk/recommendation-sdk.js"></script>
 <script>
-(function () {
+RecommendationSDK.init({
 
-  /*
-   * Recommendation SDK initialization
-   */
+  // User ID used for deterministic model assignment.
+  userId: '{{User ID}}',
 
-  RecommendationSDK.init({
+  // Optional: specify one experiment only.
+  // If omitted, all matching active experiments are evaluated.
+  // experimentName: 'News Recommendation Model Test',
 
-    /*
-     * REQUIRED
-     * User identifier used for deterministic assignment.
-     */
-    userId: '{{Client ID}}',
+  // Runtime context used for experiment targeting.
+  context: {
+    portal: '{{Portal}}',
+    section: '{{Section}}',
+    feature: '{{Feature}}',
+    placement: '{{Placement}}'
+  },
 
-    /*
-     * OPTIONAL
-     * If provided, only this experiment is evaluated.
-     * If omitted, all matching active experiments are evaluated.
-     */
-    // experimentName: 'News Recommendation Model Test',
+  // Published experiment configuration.
+  configUrl: 'https://zains1234.github.io/CDN/AB-Model/config/production/index.json'
 
-    /*
-     * Runtime context used to match experiment targeting.
-     * Add fields here if your experiment uses them.
-     */
-    context: {
-      portal: 'detikcom',
-      feature: 'recommendation'
-
-      // section: 'news',
-      // placement: 'newsfeed',
-      // device: 'mobile'
-    },
-
-    /*
-     * REQUIRED
-     * Published experiment manifest.
-     */
-    configUrl:
-      'https://zains1234.github.io/CDN/AB-Model/config/production/index.json'
-
-  }).then(function () {
-
-    /*
-     * SDK already sends recommendation_sdk_ready.
-     * No need to push it again here.
-     */
-
-    console.log(
-      '[RecommendationSDK] Ready:',
-      RecommendationSDK.getDebugInfo()
-    );
-
-  });
-
-})();
+});
 </script>
