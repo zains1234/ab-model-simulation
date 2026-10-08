@@ -3,9 +3,14 @@
 
   // Main SDK object and runtime state.
   var S = {
-    version: "1.1.0",
+    version: "1.2.0",
     ready: null,
-    state: { status: "idle", assignment: null, debug: {} },
+    state: {
+      status: "idle",
+      assignment: null,
+      assignments: {},
+      debug: {},
+    },
   };
 
   // Returns true when the user ID is missing or still contains an
@@ -32,7 +37,7 @@
   }
 
   // Finds conflicting active experiments that control the same
-  // experiment-based recommendation key.
+  // recommendation key.
   function conflicts(xs) {
     var o = {},
       out = [];
@@ -47,7 +52,7 @@
       if (o[k].length > 1) {
         out.push({
           key: k,
-          experiments: o[k]
+          experiments: o[k],
         });
       }
     });
@@ -239,6 +244,48 @@
     return out;
   }
 
+  // Builds static recommendations from multiple matching experiments.
+  // This is used when multiple experiments match the current context.
+  function buildStatic(exps) {
+    var out = {};
+
+    exps.forEach(function (exp) {
+      Object.keys(exp.recommendations || {}).forEach(function (k) {
+        var c = exp.recommendations[k];
+
+        if (c && c.type === "static") {
+          var staticValue = clone(c);
+          delete staticValue.type;
+          out[k] = staticValue;
+        }
+      });
+    });
+
+    return out;
+  }
+
+  // Builds the assignment information exposed to impression tracking.
+  // Each recommendation key points to the experiment that owns it.
+  function buildExperimentAssignments(assignments) {
+    var out = {};
+
+    Object.keys(assignments).forEach(function (experimentId) {
+      var item = assignments[experimentId];
+
+      Object.keys(item.recommendationKeys || {}).forEach(function (k) {
+        out[k] = {
+          status: item.status,
+          experimentId: item.experimentId,
+          experimentName: item.experimentName,
+          experimentVersion: item.experimentVersion,
+          assignedModel: item.assignedModel,
+        };
+      });
+    });
+
+    return out;
+  }
+
   // Initializes the SDK, loads active experiments, resolves targeting,
   // performs deterministic assignment, and builds window.dsrec.
   S.init = async function (o) {
@@ -253,8 +300,12 @@
         var ctx = o.context || {},
           man = await get(o.configUrl);
 
+        // The manifest now uses schema version 3.
         if (man.schema_version !== 3) {
-          throw Error("Unsupported manifest schema version: " + man.schema_version);
+          throw Error(
+            "Unsupported manifest schema version: " +
+              man.schema_version,
+          );
         }
 
         var list = [];
@@ -269,12 +320,17 @@
           );
         });
 
-        // Only download experiment JSON for matching candidates.
-        for (var i = 0; i < candidates.length; i++) {
-          var e0 = candidates[i];
+        // Load matching experiment JSON files in parallel.
+        // Only experiments that passed the lightweight manifest
+        // target check are downloaded.
+        var loaded = await Promise.all(
+          candidates.map(function (e0) {
+            return get(new URL(e0.config_url, o.configUrl));
+          }),
+        );
 
-          var e = await get(new URL(e0.config_url, o.configUrl));
-
+        // Validate every matching experiment configuration.
+        loaded.forEach(function (e) {
           if (e.schema_version !== 2) {
             throw Error(
               "Unsupported experiment schema version: " +
@@ -288,18 +344,23 @@
             validateRecommendation(e.recommendations[k], e.models);
           });
 
-          // Validate target again from the authoritative experiment JSON.
-          // The manifest is only the lightweight routing/filter layer.
+          // Validate target again using the actual experiment JSON.
+          // The manifest is the lightweight filter, while the experiment
+          // JSON remains the authoritative configuration.
           if (e.status === "active" && match(e.target, ctx)) {
             list.push(e);
           }
-        }
+        });
 
         // Never randomly choose between conflicting experiments.
+        // Multiple experiments are allowed only when they own different
+        // recommendation keys.
         var cs = conflicts(list);
 
         if (cs.length) {
           S.state.status = "conflict";
+          w.dsrec = {};
+          w.dsrecExperiments = {};
           w.dsrecExperiment = {
             status: "conflict",
             conflicts: cs,
@@ -307,112 +368,222 @@
           throw Error("Conflicting active experiments");
         }
 
-        // Without a valid user ID there is no deterministic assignment.
-        if (unresolved(o.userId)) {
-          w.dsrec = build(null, {});
-          S.state.status = "no_user_id";
-          w.dsrecExperiment = { status: "no_user_id" };
-          return;
-        }
+        // If there are no matching experiments, there is nothing
+        // to assign. The SDK still reaches the ready state so that
+        // impression tags waiting for recommendation_sdk_ready
+        // can continue their normal flow.
+        if (!list.length) {
+          w.dsrec = {};
+          w.dsrecExperiments = {};
 
-        // Only one matching experiment should remain after conflict checks.
-        var e = list[0];
-
-        if (!e) {
-          w.dsrec = build(null, {});
           S.state.status = "no_matching_experiment";
-          w.dsrecExperiment = { status: S.state.status };
+          S.state.assignments = {};
+          S.state.debug = {
+            status: S.state.status,
+            context: clone(ctx),
+            assignments: {},
+          };
+
+          w.dsrecExperiment = clone(S.state.debug);
+
           return;
         }
 
-        // Experiment ID + user ID creates an experiment-specific deterministic
-        // assignment. The same user can therefore be assigned differently
-        // in different experiments.
-        var h = await sha256(e.id + ":" + String(o.userId)),
-          b = bucket(h),
-          chosen = {},
-          assigned = null;
+        // Without a valid user ID there is no deterministic assignment.
+        // Static recommendations can still be used because they do not
+        // require model assignment.
+        if (unresolved(o.userId)) {
+          w.dsrec = buildStatic(list);
+          w.dsrecExperiments = {};
 
-        // Select one model for all experiment recommendation keys.
-        Object.keys(e.recommendations || {}).forEach(function (k) {
-          var c = e.recommendations[k];
+          S.state.status = "no_user_id";
+          S.state.assignments = {};
+          S.state.debug = {
+            status: S.state.status,
+            context: clone(ctx),
+            assignments: {},
+          };
 
-          if (c.type === "experiment") {
-            var m = select(e.models, b);
+          w.dsrecExperiment = clone(S.state.debug);
 
-            // null means the bucket is outside the configured model coverage.
-            if (m) {
-              chosen[k] = m;
+          return;
+        }
 
-              if (assigned === null) {
-                assigned = m.name;
+        // Final recommendation object.
+        // Each matching experiment contributes its own recommendation keys.
+        var finalConfig = {};
+
+        // Stores assignment information for every matching experiment.
+        var assignments = {};
+
+        // Process every matching experiment independently.
+        // Each experiment gets its own deterministic assignment using
+        // experiment ID + user ID.
+        for (var i = 0; i < list.length; i++) {
+          var e = list[i];
+
+          // Experiment ID + user ID creates an experiment-specific deterministic
+          // assignment. The same user can therefore be assigned differently
+          // in different experiments.
+          var h = await sha256(
+              e.id + ":" + String(o.userId),
+            ),
+            b = bucket(h),
+            chosen = {},
+            assigned = null;
+
+          // Select one model for all experiment recommendation keys
+          // inside this experiment.
+          Object.keys(e.recommendations || {}).forEach(function (k) {
+            var c = e.recommendations[k];
+
+            if (c.type === "experiment") {
+              var m = select(e.models, b);
+
+              // null means the bucket is outside the configured model coverage.
+              if (m) {
+                chosen[k] = m;
+
+                if (assigned === null) {
+                  assigned = m.name;
+                }
               }
             }
+          });
+
+          // Build this experiment's recommendation configuration.
+          var experimentConfig = build(e, chosen);
+
+          // Merge this experiment into the final recommendation object.
+          Object.keys(experimentConfig).forEach(function (k) {
+            finalConfig[k] = experimentConfig[k];
+          });
+
+          // Track every recommendation key owned by this experiment.
+          var recommendationKeys = {};
+
+          Object.keys(e.recommendations || {}).forEach(function (k) {
+            recommendationKeys[k] = true;
+          });
+
+          // Record whether this experiment assigned the user to a model.
+          if (assigned === null) {
+            assignments[e.id] = {
+              status: "unassigned",
+              experimentId: e.id,
+              experimentName: e.name,
+              experimentVersion: e.version,
+              hash: h,
+              bucket: b,
+              assignedModel: null,
+              recommendationKeys: recommendationKeys,
+            };
+          } else {
+            assignments[e.id] = {
+              status: "assigned",
+              experimentId: e.id,
+              experimentName: e.name,
+              experimentVersion: e.version,
+              hash: h,
+              bucket: b,
+              assignedModel: assigned,
+              recommendationKeys: recommendationKeys,
+            };
+
+            // Only send the assignment event when a model was actually assigned.
+            // Unassigned users are intentionally not counted as model assignments.
+            if (w.dataLayer) {
+              w.dataLayer.push({
+                event: "recommendation_model_assigned",
+                experiment_id: e.id,
+                experiment_name: e.name,
+                experiment_version: e.version,
+                assigned_model: assigned,
+                bucket: b,
+              });
+            }
           }
+        }
+
+        // Expose the final frontend object.
+        w.dsrec = finalConfig;
+
+        // Expose recommendation-key-level experiment information.
+        // Impression tracking can use:
+        // window.dsrecExperiments["newsfeed"]
+        w.dsrecExperiments =
+          buildExperimentAssignments(assignments);
+
+        // Keep the complete assignment information in SDK state.
+        S.state.assignments = assignments;
+
+        // Keep the original assignment field useful for single-experiment
+        // situations. When multiple experiments exist, it contains the
+        // assignment of the first matching experiment.
+        var assignmentIds = Object.keys(assignments);
+
+        if (assignmentIds.length === 1) {
+          S.state.assignment =
+            clone(assignments[assignmentIds[0]]);
+          delete S.state.assignment.recommendationKeys;
+        } else {
+          S.state.assignment = null;
+        }
+
+        // Determine overall SDK status.
+        var hasAssigned = assignmentIds.some(function (id) {
+          return assignments[id].status === "assigned";
         });
 
-        // Build the final frontend object.
-        // Static recommendations may still be present even when the user
-        // is outside the model allocation. Experiment recommendations are not.
-        w.dsrec = build(e, chosen);
+        var hasUnassigned = assignmentIds.some(function (id) {
+          return assignments[id].status === "unassigned";
+        });
 
-        // Record whether this user received a model or falls into the
-        // intentionally unassigned percentage.
-        if (assigned === null) {
-          S.state.assignment = {
-            status: "unassigned",
-            experimentId: e.id,
-            experimentName: e.name,
-            experimentVersion: e.version,
-            hash: h,
-            bucket: b,
-            assignedModel: null,
-          };
-
+        if (hasAssigned) {
+          S.state.status = "assigned";
+        } else if (hasUnassigned) {
           S.state.status = "unassigned";
         } else {
-          S.state.assignment = {
-            status: "assigned",
-            experimentId: e.id,
-            experimentName: e.name,
-            experimentVersion: e.version,
-            hash: h,
-            bucket: b,
-            assignedModel: assigned,
-          };
-
-          S.state.status = "assigned";
+          S.state.status = "ready";
         }
 
         S.state.debug = {
           status: S.state.status,
           context: clone(ctx),
-          assignment: clone(S.state.assignment),
+          assignments: clone(assignments),
         };
 
         w.dsrecExperiment = clone(S.state.debug);
-
-        // Only send the assignment event when a model was actually assigned.
-        // Unassigned users are intentionally not counted as model assignments.
-        if (w.dataLayer && assigned !== null) {
-          w.dataLayer.push({
-            event: "recommendation_model_assigned",
-            experiment_id: e.id,
-            experiment_name: e.name,
-            experiment_version: e.version,
-            assigned_model: assigned,
-            bucket: b,
-          });
-        }
       } catch (err) {
         S.state.status = "error";
         S.state.error = err.message;
+        S.state.assignments = {};
+        S.state.assignment = null;
+
+        w.dsrec = w.dsrec || {};
+        w.dsrecExperiments = {};
+
         w.dsrecExperiment = {
           status: "error",
           message: err.message,
         };
       } finally {
         S.state.ready = true;
+
+        // Always fire the SDK ready event.
+        // This fires even when:
+        // - no experiment exists
+        // - no experiment matches
+        // - user ID is missing
+        // - user is unassigned
+        // - an SDK error occurs
+        //
+        // Impression tags can use this event as their sequencing point.
+        if (w.dataLayer) {
+          w.dataLayer.push({
+            event: "recommendation_sdk_ready",
+          });
+        }
       }
 
       return S.getDebugInfo();
@@ -422,6 +593,8 @@
   };
 
   // Returns the deterministic assignment information.
+  // For multiple experiments, use getDebugInfo().assignments
+  // or window.dsrecExperiments for recommendation-key-level lookup.
   S.getAssignment = function () {
     return clone(S.state.assignment);
   };
