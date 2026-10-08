@@ -329,7 +329,7 @@
 
           const manifest = await response.json();
 
-          if (manifest.schema_version !== 2) {
+          if (manifest.schema_version !== 3) {
             throw new Error(
               "Unsupported configuration schema: " +
               manifest.schema_version
@@ -539,6 +539,10 @@
               rec_item.querySelector(".recommendation-name")?.value.trim();
 
             if (!rec_name) return;
+
+            if (rec_data[rec_name]) {
+              return;
+            }
 
             const type =
               rec_item.querySelector(".recommendation-type")?.value ||
@@ -986,6 +990,43 @@
           recommendations: currentRecommendations(),
         };
       }
+      function findActiveRecommendationConflicts(exp_data, ignore_id = null) {
+        const conflict_list = [];
+
+        const current_keys = Object.keys(
+          exp_data.recommendations || {}
+        );
+
+        experiments
+          .filter(
+            (exp_item) =>
+              exp_item.status === "active" &&
+              exp_item.id !== ignore_id
+          )
+          .forEach((exp_item) => {
+
+            const active_keys = Object.keys(
+              exp_item.recommendations || {}
+            );
+
+            current_keys.forEach((key) => {
+
+              if (active_keys.includes(key)) {
+
+                conflict_list.push({
+                  key: key,
+                  experiment_id: exp_item.id,
+                  experiment_name: exp_item.name
+                });
+
+              }
+
+            });
+
+          });
+
+        return conflict_list;
+      }
       function validate(exp_data) {
         const error_list = [];
 
@@ -1053,16 +1094,55 @@
         // ==========================================
         // RECOMMENDATIONS
         // ==========================================
+        
+        const recommendation_keys =
+          Object.keys(exp_data.recommendations);
 
-        if (
-          !Object.keys(
-            exp_data.recommendations
-          ).length
-        ) {
-
+        if (!recommendation_keys.length) {
           error_list.push(
             "At least 1 recommendation required"
           );
+        }
+
+        if (
+          new Set(recommendation_keys).size !==
+          recommendation_keys.length
+        ) {
+
+          error_list.push(
+            "Recommendation keys must be unique within the experiment"
+          );
+
+        }
+
+        // ==========================================
+        // ACTIVE RECOMMENDATION KEY UNIQUENESS
+        // ==========================================
+
+        if (exp_data.status === "active") {
+
+          const active_key_conflicts =
+            findActiveRecommendationConflicts(
+              exp_data,
+              editingId
+            );
+
+          active_key_conflicts.forEach(
+            (conflict_item) => {
+
+              error_list.push(
+                "Recommendation key \"" +
+                conflict_item.key +
+                "\" is already used by active experiment \"" +
+                conflict_item.experiment_name +
+                "\" (" +
+                conflict_item.experiment_id +
+                ")"
+              );
+
+            }
+          );
+
         }
 
         Object.entries(
@@ -1193,16 +1273,64 @@
         closeExperiment();
       }
       function setExperimentStatus(exp_id, status) {
-        const exp_data = experiments.find((exp_item) => exp_item.id === exp_id);
-        if (["completed", "archived"].includes(exp_data.status) && status === "active") {
+        const exp_data =
+          experiments.find(
+            (exp_item) => exp_item.id === exp_id
+          );
+
+        if (!exp_data) return;
+
+        if (
+          ["completed", "archived"].includes(exp_data.status) &&
+          status === "active"
+        ) {
+
           alert(
             "This experiment is already " +
             exp_data.status +
             ". Duplicate it to create a new experiment."
           );
+
           return;
         }
+
+        // ==========================================
+        // ACTIVE RECOMMENDATION KEY UNIQUENESS
+        // ==========================================
+
+        if (status === "active") {
+
+          const active_key_conflicts =
+            findActiveRecommendationConflicts(
+              exp_data,
+              exp_data.id
+            );
+
+          if (active_key_conflicts.length) {
+
+            alert(
+              "Cannot activate this experiment.\n\n" +
+              active_key_conflicts
+                .map(
+                  (conflict_item) =>
+                    "Recommendation key \"" +
+                    conflict_item.key +
+                    "\" is already used by active experiment \"" +
+                    conflict_item.experiment_name +
+                    "\" (" +
+                    conflict_item.experiment_id +
+                    ")"
+                )
+                .join("\n")
+            );
+
+            return;
+          }
+
+        }
+
         exp_data.status = status;
+
         save();
       }
       function duplicateExperiment(exp_id) {
@@ -1229,16 +1357,31 @@
       }
       function exportManifest() {
         download("index.json", {
-          schema_version: 2,
+          schema_version: 3,
           config_version: Date.now(),
           generated_at: new Date().toISOString(),
+
           experiments: experiments
             .filter((exp_item) => exp_item.status === "active")
             .map((exp_item) => ({
               id: exp_item.id,
+              name: exp_item.name,
               version: exp_item.version,
               status: exp_item.status,
-              config_url: "./experiments/" + exp_item.id + "/v" + exp_item.version + ".json",
+
+              // Target metadata is included in the manifest
+              // so the SDK can filter experiments before
+              // downloading the full experiment JSON.
+              target: exp_item.target || {},
+              experiment_keys: Object.keys(
+                exp_item.recommendations || {}
+              ),
+              config_url:
+                "./experiments/" +
+                exp_item.id +
+                "/v" +
+                exp_item.version +
+                ".json",
             })),
         });
       }
@@ -1257,16 +1400,28 @@
         * because the SDK should only load experiments that are currently active.
         */
         const manifest = {
-          schema_version: 2,
+          schema_version: 3,
           config_version: Date.now(),
           generated_at: new Date().toISOString(),
 
           experiments: experiments
-            .filter((experiment_item) => experiment_item.status === "active")
+            .filter(
+              (experiment_item) =>
+                experiment_item.status === "active"
+            )
             .map((experiment_item) => ({
               id: experiment_item.id,
+              name: experiment_item.name,
               version: experiment_item.version,
               status: experiment_item.status,
+
+              // Target metadata allows the SDK to determine
+              // which experiments are relevant before downloading
+              // the full experiment configuration.
+              target: experiment_item.target || {},
+              experiment_keys: Object.keys(
+                experiment_item.recommendations || {}
+              ),
               config_url:
                 "./experiments/" +
                 experiment_item.id +
