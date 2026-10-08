@@ -39,16 +39,16 @@
 
     xs.forEach(function (e) {
       Object.keys(e.recommendations || {}).forEach(function (k) {
-        var c = e.recommendations[k];
-        if (c && c.type === "experiment") {
-          (o[k] || (o[k] = [])).push(e.id);
-        }
+        (o[k] || (o[k] = [])).push(e.id);
       });
     });
 
     Object.keys(o).forEach(function (k) {
       if (o[k].length > 1) {
-        out.push({ key: k, experiments: o[k] });
+        out.push({
+          key: k,
+          experiments: o[k]
+        });
       }
     });
 
@@ -253,17 +253,25 @@
         var ctx = o.context || {},
           man = await get(o.configUrl);
 
-        if (man.schema_version !== 2) {
-          throw Error("Unsupported schema version: " + man.schema_version);
+        if (man.schema_version !== 3) {
+          throw Error("Unsupported manifest schema version: " + man.schema_version);
         }
 
         var list = [];
 
-        // Load and validate all active experiments from the manifest.
-        for (var i = 0; i < (man.experiments || []).length; i++) {
-          var e0 = man.experiments[i];
+        // First filter using the lightweight manifest.
+        // This prevents downloading experiment JSON files that
+        // cannot possibly match the current page/context.
+        var candidates = (man.experiments || []).filter(function (e0) {
+          return (
+            e0.status === "active" &&
+            match(e0.target, ctx)
+          );
+        });
 
-          if (e0.status !== "active") continue;
+        // Only download experiment JSON for matching candidates.
+        for (var i = 0; i < candidates.length; i++) {
+          var e0 = candidates[i];
 
           var e = await get(new URL(e0.config_url, o.configUrl));
 
@@ -280,6 +288,8 @@
             validateRecommendation(e.recommendations[k], e.models);
           });
 
+          // Validate target again from the authoritative experiment JSON.
+          // The manifest is only the lightweight routing/filter layer.
           if (e.status === "active" && match(e.target, ctx)) {
             list.push(e);
           }
