@@ -284,7 +284,7 @@
         <div class="grid">
           <div class="input-container">
             <label>Experiment ID</label>
-            <input id="simulation_id" value="recommendation_detikcom_news_001" />
+            <input id="simulation_id" value="recommendation_detikcom_001" />
           </div>
           <div class="input-container">
             <label>User ID</label>
@@ -452,16 +452,18 @@
                   <td>
                     v${exp_item.version}
                   </td>
-                  <td class="action-btn">
-                    <button onclick="editExperiment('${escapeHtml(exp_item.id)}')">
-                      Edit
-                    </button>
-                    ${exp_item.status === "draft" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Start</button>` : ""}
-                    ${exp_item.status === "active" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','paused')">Pause</button>` : ""}
-                    ${exp_item.status === "paused" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Resume</button>` : ""}
-                    ${["active", "paused"].includes(exp_item.status) ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','completed')">Complete</button>` : ""}
-                    ${exp_item.status !== "archived" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','archived')">Archive</button>` : ""}
-                    <button onclick="duplicateExperiment('${escapeHtml(exp_item.id)}')">Duplicate</button>
+                  <td>
+                    <div class="action-btn">
+                      <button onclick="editExperiment('${escapeHtml(exp_item.id)}')">
+                        Edit
+                      </button>
+                      ${exp_item.status === "draft" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Start</button>` : ""}
+                      ${exp_item.status === "active" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','paused')">Pause</button>` : ""}
+                      ${exp_item.status === "paused" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','active')">Resume</button>` : ""}
+                      ${["active", "paused"].includes(exp_item.status) ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','completed')">Complete</button>` : ""}
+                      ${exp_item.status !== "archived" ? `<button onclick="setExperimentStatus('${escapeHtml(exp_item.id)}','archived')">Archive</button>` : ""}
+                      <button onclick="duplicateExperiment('${escapeHtml(exp_item.id)}')">Duplicate</button>
+                    </div>
                   </td>
                 </tr>`,
             )
@@ -990,7 +992,26 @@
           recommendations: currentRecommendations(),
         };
       }
-      function findActiveRecommendationConflicts(exp_data, ignore_id = null) {
+      function findDuplicateExperimentId(exp_data, ignore_item = null) {
+        const normalized_id = String(exp_data.id || "")
+          .trim()
+          .toLowerCase();
+
+        return (
+          experiments.find(
+            (exp_item) =>
+              exp_item !== ignore_item &&
+              String(exp_item.id || "")
+                .trim()
+                .toLowerCase() === normalized_id
+          ) || null
+        );
+      }
+
+      function findActiveRecommendationConflicts(
+        exp_data,
+        ignore_id = null
+      ) {
         const conflict_list = [];
 
         const current_keys = Object.keys(
@@ -1036,6 +1057,42 @@
 
         if (!exp_data.id) {
           error_list.push("ID required");
+        } else {
+
+          // ==========================================
+          // EXPERIMENT ID UNIQUENESS
+          // ==========================================
+
+          const current_experiment =
+            editingId
+              ? experiments.find(
+                  (exp_item) => exp_item.id === editingId
+                )
+              : null;
+
+          const duplicate_experiment =
+            findDuplicateExperimentId(
+              exp_data,
+              current_experiment
+            );
+
+          if (duplicate_experiment) {
+
+            error_list.push(
+              "Experiment ID \"" +
+              exp_data.id +
+              "\" is already used by \"" +
+              duplicate_experiment.name +
+              "\" (" +
+              duplicate_experiment.id +
+              ")"
+            );
+
+          }
+        }
+
+        if (!exp_data.name) {
+          error_list.push("Name required");
         }
 
         if (!exp_data.name) {
@@ -1295,10 +1352,36 @@
         }
 
         // ==========================================
-        // ACTIVE RECOMMENDATION KEY UNIQUENESS
+        // EXPERIMENT ID UNIQUENESS
         // ==========================================
 
         if (status === "active") {
+
+          const duplicate_experiment =
+            findDuplicateExperimentId(
+              exp_data,
+              exp_data
+            );
+
+          if (duplicate_experiment) {
+
+            alert(
+              "Cannot activate this experiment.\n\n" +
+              "Experiment ID \"" +
+              exp_data.id +
+              "\" is already used by \"" +
+              duplicate_experiment.name +
+              "\" (" +
+              duplicate_experiment.id +
+              ")."
+            );
+
+            return;
+          }
+
+          // ==========================================
+          // ACTIVE RECOMMENDATION KEY UNIQUENESS
+          // ==========================================
 
           const active_key_conflicts =
             findActiveRecommendationConflicts(
@@ -1501,7 +1584,8 @@
           document.getElementById("simulation_output").textContent = "No valid models";
           return;
         }
-        const user_distribution = { __unassigned: 0 };
+        const user_distribution = {};
+        const user_unassigned = 0;
         exp_data.models.forEach((model_item) => (user_distribution[model_item.name] = 0));
         for (let i = 1; i <= user_total_number; i++) {
           const bucket_value = RecommendationSDK._test.bucket(
@@ -1514,9 +1598,10 @@
           if (model_data) {
             user_distribution[model_data.name]++;
           } else {
-            user_distribution.__unassigned++;
+            user_unassigned++;
           }
         }
+        user_distribution["__unassigned"] = user_unassigned;
         document.getElementById("simulation_output").textContent = JSON.stringify(
           {
             expected: [
