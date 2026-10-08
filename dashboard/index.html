@@ -581,7 +581,8 @@
                 const model_name = model_item.dataset.model;
 
                 models[model_name] = {
-                  src: "internal",
+                  src: model_item.querySelector(".rec-model-src")?.value.trim() ||
+                    "internal",
                   url:
                     model_item.querySelector(".rec-model-url")?.value.trim() ||
                     "",
@@ -951,6 +952,16 @@
               class="rec-model-url"
               placeholder="https://..."
               value="${escapeHtml(saved.url || "")}"
+            >
+
+            <div class="model-meta">
+              Source for ${escapeHtml(model_item.name)}
+            </div>
+
+            <input
+              class="rec-model-src"
+              placeholder="internal"
+              value="${escapeHtml(saved.src || "internal")}"
             >
           `;
 
