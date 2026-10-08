@@ -992,8 +992,8 @@
           recommendations: currentRecommendations(),
         };
       }
-      function findDuplicateExperimentId(exp_data, ignore_item = null) {
-        const normalized_id = String(exp_data.id || "")
+      function findDuplicateExperimentName(exp_data, ignore_item = null) {
+        const normalized_name = String(exp_data.name || "")
           .trim()
           .toLowerCase();
 
@@ -1001,13 +1001,12 @@
           experiments.find(
             (exp_item) =>
               exp_item !== ignore_item &&
-              String(exp_item.id || "")
+              String(exp_item.name || "")
                 .trim()
-                .toLowerCase() === normalized_id
+                .toLowerCase() === normalized_name
           ) || null
         );
       }
-
       function findActiveRecommendationConflicts(
         exp_data,
         ignore_id = null
@@ -1057,11 +1056,11 @@
 
         if (!exp_data.id) {
           error_list.push("ID required");
-        } else {
+        }
 
-          // ==========================================
-          // EXPERIMENT ID UNIQUENESS
-          // ==========================================
+        if (!exp_data.name) {
+          error_list.push("Name required");
+        } else {
 
           const current_experiment =
             editingId
@@ -1071,32 +1070,22 @@
               : null;
 
           const duplicate_experiment =
-            findDuplicateExperimentId(
+            findDuplicateExperimentName(
               exp_data,
               current_experiment
             );
 
           if (duplicate_experiment) {
-
             error_list.push(
-              "Experiment ID \"" +
-              exp_data.id +
+              "Experiment name \"" +
+              exp_data.name +
               "\" is already used by \"" +
               duplicate_experiment.name +
               "\" (" +
               duplicate_experiment.id +
               ")"
             );
-
           }
-        }
-
-        if (!exp_data.name) {
-          error_list.push("Name required");
-        }
-
-        if (!exp_data.name) {
-          error_list.push("Name required");
         }
 
         // ==========================================
@@ -1341,7 +1330,6 @@
           ["completed", "archived"].includes(exp_data.status) &&
           status === "active"
         ) {
-
           alert(
             "This experiment is already " +
             exp_data.status +
@@ -1352,36 +1340,10 @@
         }
 
         // ==========================================
-        // EXPERIMENT ID UNIQUENESS
+        // ACTIVE RECOMMENDATION KEY UNIQUENESS
         // ==========================================
 
         if (status === "active") {
-
-          const duplicate_experiment =
-            findDuplicateExperimentId(
-              exp_data,
-              exp_data
-            );
-
-          if (duplicate_experiment) {
-
-            alert(
-              "Cannot activate this experiment.\n\n" +
-              "Experiment ID \"" +
-              exp_data.id +
-              "\" is already used by \"" +
-              duplicate_experiment.name +
-              "\" (" +
-              duplicate_experiment.id +
-              ")."
-            );
-
-            return;
-          }
-
-          // ==========================================
-          // ACTIVE RECOMMENDATION KEY UNIQUENESS
-          // ==========================================
 
           const active_key_conflicts =
             findActiveRecommendationConflicts(
@@ -1409,7 +1371,6 @@
 
             return;
           }
-
         }
 
         exp_data.status = status;
