@@ -3,7 +3,7 @@
 RecommendationSDK.init({
 
   // User ID used for deterministic model assignment.
-  userId: '{{User ID}}',
+  userId: '{{Client ID}}',
 
   // Optional: specify one experiment only.
   // If omitted, all matching active experiments are evaluated.
@@ -11,10 +11,8 @@ RecommendationSDK.init({
 
   // Runtime context used for experiment targeting.
   context: {
-    portal: '{{Portal}}',
-    section: '{{Section}}',
-    feature: '{{Feature}}',
-    placement: '{{Placement}}'
+    portal: 'detikcom',
+    feature: 'recommendation'
   },
 
   // Published experiment configuration.
