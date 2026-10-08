@@ -147,7 +147,6 @@
       .input-container {
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
       }
       .action-btn {
         display: flex;
@@ -215,7 +214,7 @@
       </div>
       <div id="experiment_editor_section" class="p hidden">
         <h2 id="create_edit_experiment">Experiment</h2>
-        <div class="toolbar">
+        <div class="grid">
           <div class="input-container">
             <label>ID</label>
             <input id="experiment_id" />
@@ -223,10 +222,6 @@
           <div class="input-container">
             <label>Name</label>
             <input id="experiment_name" />
-          </div>
-          <div class="input-container">
-            <label>Event</label>
-            <input id="experiment_event" oninput="preventWhitespace(this)" />
           </div>
           <div class="input-container">
             <label>Status</label>
@@ -479,7 +474,6 @@
         document.getElementById("create_edit_experiment").textContent = "Create Experiment";
         document.getElementById("experiment_id").value = "experiment_" + Date.now();
         document.getElementById("experiment_name").value = "New Experiment";
-        document.getElementById("experiment_event").value = "draftevent";
         document.getElementById("experiment_status").value = "draft";
         document.getElementById("experiment_version").value = 1;
         renderExpTarget({});
@@ -499,7 +493,6 @@
         document.getElementById("create_edit_experiment").textContent = "Edit Experiment";
         document.getElementById("experiment_id").value = experiment_data.id;
         document.getElementById("experiment_name").value = experiment_data.name;
-        document.getElementById("experiment_event").value = experiment_data.event;
         document.getElementById("experiment_status").value = experiment_data.status;
         document.getElementById("experiment_version").value = experiment_data.version;
         renderExpTarget(experiment_data.target || {});
@@ -543,7 +536,7 @@
           .forEach((rec_item) => {
 
             const rec_name =
-              rec_item.querySelector(".recomendation-name")?.value.trim();
+              rec_item.querySelector(".recommendation-name")?.value.trim();
 
             if (!rec_name) return;
 
@@ -788,8 +781,9 @@
             <div style="display:flex; gap:8px; flex:1;">
 
               <input
-                class="recomendation-name"
+                class="recommendation-name"
                 placeholder="Recommendation key"
+                oninput="preventWhitespace(this)"
                 value="${escapeHtml(key_value)}"
               >
 
@@ -985,7 +979,6 @@
           schema_version: 2,
           id: document.getElementById("experiment_id").value.trim(),
           name: document.getElementById("experiment_name").value.trim(),
-          event: document.getElementById("experiment_event").value.trim(),
           version: Number(document.getElementById("experiment_version").value),
           status: document.getElementById("experiment_status").value,
           target: target_data,
@@ -1006,10 +999,6 @@
 
         if (!exp_data.name) {
           error_list.push("Name required");
-        }
-
-        if (!exp_data.event) {
-          error_list.push("Event required");
         }
 
         // ==========================================
