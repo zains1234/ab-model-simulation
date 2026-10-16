@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Recommendation Experiment Dashboard</title>
+    <title>Model Experiment Dashboard</title>
     <style>
       body {
         font-family: system-ui;
@@ -178,7 +178,7 @@
   </head>
   <body>
     <header>
-      <h1>Recommendation Experiment Dashboard</h1>
+      <h1>Model Experiment Dashboard</h1>
     </header>
     <main>
       <div class="p toolbar">
@@ -257,20 +257,20 @@
           <div class="hint">
             Models are defined once for the experiment. Percentages control
             deterministic assignment and automatically apply to every
-            recommendation below.
+            event below.
           </div>
           <div id="model_list_section"></div>
           <div id="model_total" class="total"></div>
         </div>
         <div class="card">
           <div class="section-title">
-            <b>Recommendations</b
-            ><button type="button" onclick="addRec()">+ Recommendation</button>
+            <b>Events</b
+            ><button type="button" onclick="addRec()">+ Event</button>
           </div>
           <div class="hint">
-            Add recommendation keys and choose whether each recommendation is
-            experiment-based or static. Experiment recommendations use the models
-            defined above. Static recommendations use a single URL and customizable
+            Add event keys and choose whether each event is
+            experiment-based or static. Experiment events use the models
+            defined above. Static events use a single URL and customizable
             tracking_rec.
           </div>
           <div id="recomendation_list_section"></div>
@@ -310,7 +310,7 @@
         <pre id="simulation_output">Ready.</pre>
       </div>
     </main>
-    <script src="https://cdn.detik.net.id/analytic-model/sdk/recommendation-sdk.js"></script>
+    <script src="https://cdn.detik.net.id/analytic-model/sdk/analytic-model-sdk.js"></script>
     <script>
       const CONFIG_URL = "https://cdn.detik.net.id/analytic-model/config/production/index.json"
       let experiments = [];
@@ -377,7 +377,7 @@
       function migrateExperiment(exp_item) {
         exp_item = exp_item || {};
         if (!Array.isArray(exp_item.models)) {
-          const first = Object.values(exp_item.recommendations || {}).find(
+          const first = Object.values(exp_item.events || {}).find(
             (rec_item) => rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models),
           );
           exp_item.models = (first ? first.models : []).map((model_item) => ({
@@ -389,8 +389,8 @@
           name: String(model_item.name || ""),
           percentage: Number(model_item.percentage || 0),
         }));
-        Object.keys(exp_item.recommendations || {}).forEach((rec_key) => {
-          const rec_item = exp_item.recommendations[rec_key];
+        Object.keys(exp_item.events || {}).forEach((rec_key) => {
+          const rec_item = exp_item.events[rec_key];
           if (rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models)) {
             const map = {};
             rec_item.models.forEach((model_item) => {
@@ -400,7 +400,7 @@
                 tracking_rec: model_item.tracking_rec || model_item.name,
               };
             });
-            exp_item.recommendations[rec_key] = { type: "experiment", models: map };
+            exp_item.events[rec_key] = { type: "experiment", models: map };
           }
         });
         exp_item.schema_version = 2;
@@ -498,7 +498,7 @@
         document.getElementById("experiment_status").value = experiment_data.status;
         document.getElementById("experiment_version").value = experiment_data.version;
         renderExpTarget(experiment_data.target || {});
-        renderExpModels(experiment_data.models || [], experiment_data.recommendations || {});
+        renderExpModels(experiment_data.models || [], experiment_data.events || {});
         document.getElementById("experiment_editor_section").classList.remove("hidden");
       }
       function closeExperiment() {
@@ -538,7 +538,7 @@
           .forEach((rec_item) => {
 
             const rec_name =
-              rec_item.querySelector(".recommendation-name")?.value.trim();
+              rec_item.querySelector(".event-name")?.value.trim();
 
             if (!rec_name) return;
 
@@ -547,7 +547,7 @@
             }
 
             const type =
-              rec_item.querySelector(".recommendation-type")?.value ||
+              rec_item.querySelector(".event-type")?.value ||
               "experiment";
 
             // ==========================================
@@ -651,15 +651,12 @@
 
         renderExpModels(models, recs);
       }
-      function renameModel(oldName, newName) {
+      function renameModel(oldName, newName, models) {
         newName = newName.trim();
 
         if (!newName || newName === oldName) {
           return;
         }
-
-        const models =
-          currentModels();
 
         if (
           models.some(
@@ -714,8 +711,10 @@
       }
       function bindModelRows() {
         document.querySelectorAll("#model_list_section .model-name").forEach((input) => {
-          input.onchange = () =>
-            renameModel(input.dataset.original, input.value);
+          input.onchange = () => {
+            const models = currentModels();
+            renameModel(input.dataset.original, input.value, models);
+          }
         });
         document
           .querySelectorAll("#model_list_section .model-percentage")
@@ -728,7 +727,7 @@
           <input class="model-name" data-original="${escapeHtml(model_item.name)}" value="${escapeHtml(model_item.name)}">
           <input class="model-percentage" type="number" min="0" step="0.01" value="${Number(model_item.percentage)}">
           <div class="model-meta">
-            Used by every experiment recommendation
+            Used by every experiment event
           </div>
           <button type="button" onclick="removeModel('${escapeHtml(model_item.name)}')">
             ×
@@ -759,7 +758,7 @@
         Object.entries(normalized).forEach(([key, value]) => addRec(key, value, false));
         updateModelTotalPercentage();
       }
-      function addRec(key = "recommendation", value = null, rerender = true) {
+      function addRec(key = "event", value = null, rerender = true) {
         const existing = currentRecommendations();
 
         let key_value = key;
@@ -787,13 +786,13 @@
             <div style="display:flex; gap:8px; flex:1;">
 
               <input
-                class="recommendation-name"
-                placeholder="Recommendation key"
+                class="event-name"
+                placeholder="Event key"
                 oninput="preventWhitespace(this)"
                 value="${escapeHtml(key_value)}"
               >
 
-              <select class="recommendation-type">
+              <select class="event-type">
                 <option
                   value="experiment"
                   ${recommendation_type === "experiment" ? "selected" : ""}
@@ -828,7 +827,7 @@
           .appendChild(recommendation_section);
 
         const type_select =
-          recommendation_section.querySelector(".recommendation-type");
+          recommendation_section.querySelector(".event-type");
 
         // Render the correct fields initially
         renderRecommendationFields(
@@ -989,7 +988,7 @@
           status: document.getElementById("experiment_status").value,
           target: target_data,
           models: currentModels(),
-          recommendations: currentRecommendations(),
+          events: currentRecommendations(),
         };
       }
       function findDuplicateExperimentName(exp_data, ignore_item = null) {
@@ -1014,7 +1013,7 @@
         const conflict_list = [];
 
         const current_keys = Object.keys(
-          exp_data.recommendations || {}
+          exp_data.events || {}
         );
 
         experiments
@@ -1026,7 +1025,7 @@
           .forEach((exp_item) => {
 
             const active_keys = Object.keys(
-              exp_item.recommendations || {}
+              exp_item.events || {}
             );
 
             current_keys.forEach((key) => {
@@ -1142,11 +1141,11 @@
         // ==========================================
         
         const recommendation_keys =
-          Object.keys(exp_data.recommendations);
+          Object.keys(exp_data.events);
 
         if (!recommendation_keys.length) {
           error_list.push(
-            "At least 1 recommendation required"
+            "At least 1 event required"
           );
         }
 
@@ -1156,7 +1155,7 @@
         ) {
 
           error_list.push(
-            "Recommendation keys must be unique within the experiment"
+            "Event keys must be unique within the experiment"
           );
 
         }
@@ -1177,7 +1176,7 @@
             (conflict_item) => {
 
               error_list.push(
-                "Recommendation key \"" +
+                "Event key \"" +
                 conflict_item.key +
                 "\" is already used by active experiment \"" +
                 conflict_item.experiment_name +
@@ -1192,12 +1191,12 @@
         }
 
         Object.entries(
-          exp_data.recommendations
+          exp_data.events
         ).forEach(([key, value]) => {
 
           if (!key) {
             error_list.push(
-              "Recommendation key is required"
+              "Event key is required"
             );
             return;
           }
@@ -1282,7 +1281,7 @@
 
           error_list.push(
             key +
-            ": Invalid recommendation type"
+            ": Invalid event type"
           );
 
         });
@@ -1358,7 +1357,7 @@
               active_key_conflicts
                 .map(
                   (conflict_item) =>
-                    "Recommendation key \"" +
+                    "Event key \"" +
                     conflict_item.key +
                     "\" is already used by active experiment \"" +
                     conflict_item.experiment_name +
@@ -1418,7 +1417,7 @@
               // downloading the full experiment JSON.
               target: exp_item.target || {},
               recommendation_keys: Object.keys(
-                exp_item.recommendations || {}
+                exp_item.events || {}
               ),
               config_url:
                 "./experiments/" +
@@ -1464,7 +1463,7 @@
               // the full experiment configuration.
               target: experiment_item.target || {},
               recommendation_keys: Object.keys(
-                experiment_item.recommendations || {}
+                experiment_item.events || {}
               ),
               config_url:
                 "./experiments/" +
@@ -1516,7 +1515,7 @@
         const download_link = document.createElement("a");
 
         download_link.href = URL.createObjectURL(zip_blob);
-        download_link.download = "recommendation-config-production.zip";
+        download_link.download = "event-config-production.zip";
 
         document.body.appendChild(download_link);
         download_link.click();
@@ -1530,7 +1529,7 @@
         }, 1000);
       }
       async function hash(s) {
-        return RecommendationSDK._test.sha256(s);
+        return AnalyticModelSDK._test.sha256(s);
       }
       async function distribution() {
         const exp_data = experiments.find(
@@ -1549,10 +1548,10 @@
         const user_unassigned = 0;
         exp_data.models.forEach((model_item) => (user_distribution[model_item.name] = 0));
         for (let i = 1; i <= user_total_number; i++) {
-          const bucket_value = RecommendationSDK._test.bucket(
+          const bucket_value = AnalyticModelSDK._test.bucket(
             await hash(exp_data.id + ":sim_user_" + i),
           );
-          const model_data = RecommendationSDK._test.select(exp_data.models, bucket_value);
+          const model_data = AnalyticModelSDK._test.select(exp_data.models, bucket_value);
 
           // A null model means this user falls into the unassigned
           // percentage because the configured model total is below 100%.
@@ -1598,8 +1597,8 @@
           return;
         }
         const hash_value = await hash(exp_data.id + ":" + document.getElementById("simulation_user_id").value),
-          bucket_value = RecommendationSDK._test.bucket(hash_value),
-          model_item = RecommendationSDK._test.select(exp_data.models, bucket_value);
+          bucket_value = AnalyticModelSDK._test.bucket(hash_value),
+          model_item = AnalyticModelSDK._test.select(exp_data.models, bucket_value);
         document.getElementById("simulation_output").textContent = JSON.stringify(
           {
             experimentId: exp_data.id,
@@ -1608,7 +1607,7 @@
             bucket: bucket_value,
             assignedModel: model_item ? model_item.name : null,
             assignmentStatus: model_item ? "assigned" : "unassigned",
-            targetMatches: RecommendationSDK._test.targetMatches(
+            targetMatches: AnalyticModelSDK._test.targetMatches(
               exp_data.target,
               JSON.parse(document.getElementById("context").value),
             ),
@@ -1630,7 +1629,7 @@
           const hash_value = await hash(
             exp_data.id + ":" + document.getElementById("simulation_user_id").value,
           );
-          consistency_data.push([hash_value, RecommendationSDK._test.bucket(hash_value)]);
+          consistency_data.push([hash_value, AnalyticModelSDK._test.bucket(hash_value)]);
         }
         document.getElementById("simulation_output").textContent = JSON.stringify(
           {

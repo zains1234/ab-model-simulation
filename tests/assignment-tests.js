@@ -1,5 +1,5 @@
 (async function () {
-  const T = RecommendationSDK._test,
+  const T = AnalyticModelSDK._test,
     r = [];
   function a(n, c) {
     r.push([n, c]);

@@ -37,13 +37,13 @@
   }
 
   // Finds conflicting active experiments that control the same
-  // recommendation key.
+  // event key.
   function conflicts(xs) {
     var o = {},
       out = [];
 
     xs.forEach(function (e) {
-      Object.keys(e.recommendations || {}).forEach(function (k) {
+      Object.keys(e.events || {}).forEach(function (k) {
         (o[k] || (o[k] = [])).push(e.id);
       });
     });
@@ -100,27 +100,27 @@
     }
   }
 
-  // Validates either a static recommendation or an experiment
-  // recommendation.
+  // Validates either a static event or an experiment
+  // event.
   function validateRecommendation(c, ms) {
     if (!c || typeof c !== "object") {
-      throw Error("Invalid recommendation");
+      throw Error("Invalid event");
     }
 
-    // Static recommendations do not participate in model assignment.
+    // Static events do not participate in model assignment.
     if (c.type === "static") {
       if (!String(c.url || "").trim()) {
-        throw Error("Static recommendation URL is required");
+        throw Error("Static event URL is required");
       }
 
       if (!String(c.tracking_rec || "").trim()) {
-        throw Error("Static recommendation tracking_rec is required");
+        throw Error("Static event tracking_rec is required");
       }
 
       return;
     }
 
-    // Experiment recommendations must have configuration for every model.
+    // Experiment events must have configuration for every model.
     if (
       c.type === "experiment" &&
       c.models &&
@@ -141,7 +141,7 @@
       return;
     }
 
-    throw Error("Invalid recommendation type");
+    throw Error("Invalid event type");
   }
 
   // Select a model using the 0-99 assignment bucket and cumulative
@@ -198,16 +198,16 @@
   }
 
   // Builds window.dsrec from the selected experiment.
-  // Static recommendations are always included when an experiment matches.
-  // Experiment recommendations are included only when a model was assigned.
+  // Static events are always included when an experiment matches.
+  // Experiment events are included only when a model was assigned.
   function build(exp, chosen) {
     var out = {};
 
     if (exp) {
-      Object.keys(exp.recommendations || {}).forEach(function (k) {
-        var c = exp.recommendations[k];
+      Object.keys(exp.events || {}).forEach(function (k) {
+        var c = exp.events[k];
 
-        // Static recommendation: does not depend on the assigned model.
+        // Static event: does not depend on the assigned model.
         if (c && c.type === "static") {
           var staticValue = clone(c);
           delete staticValue.type;
@@ -215,11 +215,11 @@
           return;
         }
 
-        // Experiment recommendation: use the selected model.
+        // Experiment event: use the selected model.
         if (c && c.type === "experiment") {
           var m = chosen[k];
 
-          // No assigned model means this recommendation is excluded
+          // No assigned model means this event is excluded
           // for this user.
           if (!m) {
             return;
@@ -231,7 +231,7 @@
             throw Error(
               "Selected model " +
                 m.name +
-                " is missing from recommendation " +
+                " is missing from event " +
                 k,
             );
           }
@@ -244,14 +244,14 @@
     return out;
   }
 
-  // Builds static recommendations from multiple matching experiments.
+  // Builds static events from multiple matching experiments.
   // This is used when multiple experiments match the current context.
   function buildStatic(exps) {
     var out = {};
 
     exps.forEach(function (exp) {
-      Object.keys(exp.recommendations || {}).forEach(function (k) {
-        var c = exp.recommendations[k];
+      Object.keys(exp.events || {}).forEach(function (k) {
+        var c = exp.events[k];
 
         if (c && c.type === "static") {
           var staticValue = clone(c);
@@ -265,14 +265,14 @@
   }
 
   // Builds the assignment information exposed to impression tracking.
-  // Each recommendation key points to the experiment that owns it.
+  // Each event key points to the experiment that owns it.
   function buildExperimentAssignments(assignments) {
     var out = {};
 
     Object.keys(assignments).forEach(function (experimentId) {
       var item = assignments[experimentId];
 
-      Object.keys(item.recommendationKeys || {}).forEach(function (k) {
+      Object.keys(item.eventKeys || {}).forEach(function (k) {
         out[k] = {
           status: item.status,
           experimentId: item.experimentId,
@@ -344,8 +344,8 @@
 
           validateModels(e.models);
 
-          Object.keys(e.recommendations || {}).forEach(function (k) {
-            validateRecommendation(e.recommendations[k], e.models);
+          Object.keys(e.events || {}).forEach(function (k) {
+            validateRecommendation(e.events[k], e.models);
           });
 
           // Validate target again using the actual experiment JSON.
@@ -358,7 +358,7 @@
 
         // Never randomly choose between conflicting experiments.
         // Multiple experiments are allowed only when they own different
-        // recommendation keys.
+        // event keys.
         var cs = conflicts(list);
 
         if (cs.length) {
@@ -370,7 +370,7 @@
 
         // If there are no matching experiments, there is nothing
         // to assign. The SDK still reaches the ready state so that
-        // impression tags waiting for recommendation_sdk_ready
+        // impression tags waiting for experiment-model_sdk_ready
         // can continue their normal flow.
         if (!list.length) {
           w.dsrec = {};
@@ -388,7 +388,7 @@
         }
 
         // Without a valid user ID there is no deterministic assignment.
-        // Static recommendations can still be used because they do not
+        // Static events can still be used because they do not
         // require model assignment.
         if (unresolved(o.userId)) {
           w.dsrec = buildStatic(list);
@@ -405,8 +405,8 @@
           return;
         }
 
-        // Final recommendation object.
-        // Each matching experiment contributes its own recommendation keys.
+        // Final event object.
+        // Each matching experiment contributes its own event keys.
         var finalConfig = {};
 
         // Stores assignment information for every matching experiment.
@@ -428,10 +428,10 @@
             chosen = {},
             assigned = null;
 
-          // Select one model for all experiment recommendation keys
+          // Select one model for all experiment event keys
           // inside this experiment.
-          Object.keys(e.recommendations || {}).forEach(function (k) {
-            var c = e.recommendations[k];
+          Object.keys(e.events || {}).forEach(function (k) {
+            var c = e.events[k];
 
             if (c.type === "experiment") {
               var m = select(e.models, b);
@@ -447,19 +447,19 @@
             }
           });
 
-          // Build this experiment's recommendation configuration.
+          // Build this experiment's event configuration.
           var experimentConfig = build(e, chosen);
 
-          // Merge this experiment into the final recommendation object.
+          // Merge this experiment into the final event object.
           Object.keys(experimentConfig).forEach(function (k) {
             finalConfig[k] = experimentConfig[k];
           });
 
-          // Track every recommendation key owned by this experiment.
-          var recommendationKeys = {};
+          // Track every event key owned by this experiment.
+          var eventKeys = {};
 
-          Object.keys(e.recommendations || {}).forEach(function (k) {
-            recommendationKeys[k] = true;
+          Object.keys(e.events || {}).forEach(function (k) {
+            eventKeys[k] = true;
           });
 
           // Record whether this experiment assigned the user to a model.
@@ -472,7 +472,7 @@
               hash: h,
               bucket: b,
               assignedModel: null,
-              recommendationKeys: recommendationKeys,
+              eventKeys: eventKeys,
             };
           } else {
             assignments[e.id] = {
@@ -483,14 +483,14 @@
               hash: h,
               bucket: b,
               assignedModel: assigned,
-              recommendationKeys: recommendationKeys,
+              eventKeys: eventKeys,
             };
 
             // Only send the assignment event when a model was actually assigned.
             // Unassigned users are intentionally not counted as model assignments.
             if (w.dataLayer) {
               w.dataLayer.push({
-                event: "recommendation_model_assigned",
+                event: "experiment_model_assigned",
                 experiment_id: e.id,
                 experiment_name: e.name,
                 experiment_version: e.version,
@@ -504,7 +504,7 @@
         // Expose the final frontend object.
         w.dsrec = finalConfig;
 
-        // Expose recommendation-key-level experiment information.
+        // Expose event-key-level experiment information.
         // Impression tracking can use:
         // window.dsrecExperiments["newsfeed"]
         w.dsrecExperiments =
@@ -521,7 +521,7 @@
         if (assignmentIds.length === 1) {
           S.state.assignment =
             clone(assignments[assignmentIds[0]]);
-          delete S.state.assignment.recommendationKeys;
+          delete S.state.assignment.eventKeys;
         } else {
           S.state.assignment = null;
         }
@@ -570,7 +570,7 @@
         // Impression tags can use this event as their sequencing point.
         if (w.dataLayer) {
           w.dataLayer.push({
-            event: "recommendation_sdk_ready",
+            event: "experiment-model_sdk_ready",
           });
         }
       }
@@ -583,12 +583,12 @@
 
   // Returns the deterministic assignment information.
   // For multiple experiments, use getDebugInfo().assignments
-  // or window.dsrecExperiments for recommendation-key-level lookup.
+  // or window.dsrecExperiments for event-key-level lookup.
   S.getAssignment = function () {
     return clone(S.state.assignment);
   };
 
-  // Returns the final recommendation configuration consumed by the frontend.
+  // Returns the final event configuration consumed by the frontend.
   S.getConfig = function () {
     return w.dsrec ? clone(w.dsrec) : null;
   };
@@ -609,5 +609,5 @@
   };
 
   // Expose the SDK globally.
-  w.RecommendationSDK = S;
+  w.AnalyticModelSDK = S;
 })(window);

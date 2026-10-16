@@ -7,7 +7,7 @@ Dashboard → versioned JSON → CDN/object storage → generic SDK → stable G
 
 ## Files
 - `dashboard/index.html`: experiment management prototype using localStorage; export manifest/config JSON.
-- `sdk/recommendation-sdk.js`: generic runtime engine.
+- `sdk/analytic-model-sdk.js`: generic runtime engine.
 - `config/production/index.json`: manifest.
 - `config/production/base.json`: static/base configuration.
 - `config/production/experiments/.../v1.json`: example experiment.
