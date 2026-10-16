@@ -102,7 +102,7 @@
 
   // Validates either a static event or an experiment
   // event.
-  function validateRecommendation(c, ms) {
+  function validateEvent(c, ms) {
     if (!c || typeof c !== "object") {
       throw Error("Invalid event");
     }
@@ -345,7 +345,7 @@
           validateModels(e.models);
 
           Object.keys(e.events || {}).forEach(function (k) {
-            validateRecommendation(e.events[k], e.models);
+            validateEvent(e.events[k], e.models);
           });
 
           // Validate target again using the actual experiment JSON.
