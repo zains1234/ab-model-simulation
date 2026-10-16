@@ -1436,7 +1436,7 @@
             .map(byte => byte.toString(16).padStart(2, "0"))
             .join("");
 
-        return `folder_${hex}`;
+        return `folder_${hex.slice(0, 20)}`;
       }
       async function exportAll() {
         if (typeof JSZip === "undefined") {

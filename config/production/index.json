@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
-  "config_version": 1792123256615,
-  "generated_at": "2026-10-16T04:00:56.615Z",
+  "config_version": 1792124099693,
+  "generated_at": "2026-10-16T04:14:59.693Z",
   "experiments": [
     {
       "id": "recommendation_detikcom_001",
@@ -18,7 +18,7 @@
         "beritarekomendasi",
         "artikelrekomendasi"
       ],
-      "config_url": "./experiments/recommendation_detikcom_001/v1.json"
+      "config_url": "./experiments/folder_c173b0257c3d4afe2995/v1.json"
     }
   ]
 }
