@@ -18,8 +18,8 @@
       "percentage": 50
     }
   ],
-  "recommendations": {
-    "newsfeed": {
+  "events": {
+    "boxrekomendasi": {
       "type": "experiment",
       "models": {
         "modelA": {
@@ -34,13 +34,13 @@
         }
       }
     },
-    "sticky": {
+    "boxrekomendasisticky": {
       "type": "static",
       "src": "internal",
       "url": "https://recg.detik.com/article-recommendation/sticky/",
       "tracking_rec": "model"
     },
-    "detail": {
+    "beritarekomendasi": {
       "type": "experiment",
       "models": {
         "modelA": {
@@ -55,12 +55,12 @@
         }
       }
     },
-    "index": {
+    "artikelrekomendasi": {
       "type": "static",
       "src": "internal",
       "url": "https://recg.detik.com/article-recommendation/index",
       "tracking_rec": "model"
     }
   },
-  "updated_at": "2026-10-08T07:00:01.350Z"
+  "updated_at": "2026-10-16T04:00:50.767Z"
 }

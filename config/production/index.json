@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
-  "config_version": 1791443684432,
-  "generated_at": "2026-10-08T07:14:44.432Z",
+  "config_version": 1792123256615,
+  "generated_at": "2026-10-16T04:00:56.615Z",
   "experiments": [
     {
       "id": "recommendation_detikcom_001",
@@ -12,11 +12,11 @@
         "portal": "detikcom",
         "feature": "box recommendation"
       },
-      "recommendation_keys": [
-        "newsfeed",
-        "sticky",
-        "detail",
-        "index"
+      "event_keys": [
+        "boxrekomendasi",
+        "boxrekomendasisticky",
+        "beritarekomendasi",
+        "artikelrekomendasi"
       ],
       "config_url": "./experiments/recommendation_detikcom_001/v1.json"
     }
