@@ -221,7 +221,7 @@
           </div>
           <div class="input-container">
             <label>Name</label>
-            <input id="experiment_name" />
+            <input id="experiment_name" maxlength="16" />
           </div>
           <div class="input-container">
             <label>Status</label>
@@ -1060,6 +1060,9 @@
         if (!exp_data.name) {
           error_list.push("Name required");
         } else {
+          if (exp_data.name.length > 16) {
+            error_list.push("Experiment name must be 16 characters or fewer");
+          }
 
           const current_experiment =
             editingId
@@ -1380,7 +1383,7 @@
         const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
         if (!exp_data) return;
         exp_data.id = exp_data.id + "_copy_" + Date.now();
-        exp_data.name += " (Copy)";
+        exp_data.name = (exp_data.name + " (Copy)").slice(0, 16);
         exp_data.status = "draft";
         exp_data.version = 1;
         experiments.push(exp_data);
