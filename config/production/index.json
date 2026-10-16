@@ -10,7 +10,7 @@
       "status": "active",
       "target": {
         "portal": "detikcom",
-        "feature": "box recommendation"
+        "feature": "recommendation"
       },
       "event_keys": [
         "boxrekomendasi",
