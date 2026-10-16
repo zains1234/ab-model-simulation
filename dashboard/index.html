@@ -284,7 +284,7 @@
         <div class="grid">
           <div class="input-container">
             <label>Experiment ID</label>
-            <input id="simulation_id" value="recommendation_detikcom_001" />
+            <input id="simulation_id" value="experiment_detikcom_001" />
           </div>
           <div class="input-container">
             <label>User ID</label>
@@ -530,7 +530,7 @@
           }),
         );
       }
-      function currentRecommendations() {
+      function currentEvents() {
         const rec_data = {};
 
         document
@@ -551,7 +551,7 @@
               "experiment";
 
             // ==========================================
-            // STATIC RECOMMENDATION
+            // STATIC EVENT
             // ==========================================
 
             if (type === "static") {
@@ -575,7 +575,7 @@
             }
 
             // ==========================================
-            // EXPERIMENT RECOMMENDATION
+            // EXPERIMENT EVENT
             // ==========================================
 
             const models = {};
@@ -609,7 +609,7 @@
         models_box.innerHTML = "";
         models.forEach((model_item) => models_box.appendChild(renderModelRow(model_item)));
         updateModelTotalPercentage();
-        syncRecommendations(recs || currentRecommendations());
+        syncEvents(recs || currentEvents());
       }
       function addModel(name, percentage, rerender = true) {
         const models = currentModels();
@@ -620,7 +620,7 @@
           } while (models.some((model_item) => model_item.name === name));
         }
         models.push({ name, percentage: Number(percentage || 0) });
-        const recs = currentRecommendations();
+        const recs = currentEvents();
         renderExpModels(models, recs);
         if (rerender) updateModelTotalPercentage();
       }
@@ -636,7 +636,7 @@
         }
 
         const recs =
-          currentRecommendations();
+          currentEvents();
 
         Object.values(recs).forEach((rec_item) => {
 
@@ -669,14 +669,14 @@
 
           renderExpModels(
             models,
-            currentRecommendations()
+            currentEvents()
           );
 
           return;
         }
 
         const recs =
-          currentRecommendations();
+          currentEvents();
 
         Object.values(recs).forEach((rec_item) => {
 
@@ -752,14 +752,14 @@
             : " — must be greater than 0% and no more than 100%");
         bindModelRows();
       }
-      function syncRecommendations(recs) {
+      function syncEvents(recs) {
         const normalized = recs || {};
         document.getElementById("recomendation_list_section").innerHTML = "";
         Object.entries(normalized).forEach(([key, value]) => addRec(key, value, false));
         updateModelTotalPercentage();
       }
       function addRec(key = "event", value = null, rerender = true) {
-        const existing = currentRecommendations();
+        const existing = currentEvents();
 
         let key_value = key;
         let n = 1;
@@ -770,17 +770,17 @@
 
         const models = currentModels();
 
-        const recommendation_type =
+        const event_type =
           value && value.type
             ? value.type
             : "experiment";
 
-        const recommendation_section =
+        const event_section =
           document.createElement("div");
 
-        recommendation_section.className = "card";
+        event_section.className = "card";
 
-        recommendation_section.innerHTML = `
+        event_section.innerHTML = `
           <div class="section-title">
 
             <div style="display:flex; gap:8px; flex:1;">
@@ -795,14 +795,14 @@
               <select class="event-type">
                 <option
                   value="experiment"
-                  ${recommendation_type === "experiment" ? "selected" : ""}
+                  ${event_type === "experiment" ? "selected" : ""}
                 >
                   experiment
                 </option>
 
                 <option
                   value="static"
-                  ${recommendation_type === "static" ? "selected" : ""}
+                  ${event_type === "static" ? "selected" : ""}
                 >
                   static
                 </option>
@@ -824,15 +824,15 @@
 
         document
           .getElementById("recomendation_list_section")
-          .appendChild(recommendation_section);
+          .appendChild(event_section);
 
         const type_select =
-          recommendation_section.querySelector(".event-type");
+          event_section.querySelector(".event-type");
 
         // Render the correct fields initially
-        renderRecommendationFields(
-          recommendation_section,
-          recommendation_type,
+        renderEventFields(
+          event_section,
+          event_type,
           models,
           value
         );
@@ -840,10 +840,10 @@
         // Change between experiment and static
         type_select.addEventListener("change", function () {
 
-          const current_value = currentRecommendations()[key_value];
+          const current_value = currentEvents()[key_value];
 
-          renderRecommendationFields(
-            recommendation_section,
+          renderEventFields(
+            event_section,
             this.value,
             models,
             current_value
@@ -855,15 +855,15 @@
           updateModelTotalPercentage();
         }
       }
-      function renderRecommendationFields(
-        recommendation_section,
-        recommendation_type,
+      function renderEventFields(
+        event_section,
+        event_type,
         models,
         value = null
       ) {
 
         const list =
-          recommendation_section.querySelector(".rec-model-list");
+          event_section.querySelector(".rec-model-list");
 
         list.innerHTML = "";
 
@@ -871,7 +871,7 @@
         // STATIC
         // ==========================================
 
-        if (recommendation_type === "static") {
+        if (event_type === "static") {
 
           const source =
             value && value.type === "static"
@@ -988,7 +988,7 @@
           status: document.getElementById("experiment_status").value,
           target: target_data,
           models: currentModels(),
-          events: currentRecommendations(),
+          events: currentEvents(),
         };
       }
       function findDuplicateExperimentName(exp_data, ignore_item = null) {
@@ -1006,7 +1006,7 @@
           ) || null
         );
       }
-      function findActiveRecommendationConflicts(
+      function findActiveEventConflicts(
         exp_data,
         ignore_id = null
       ) {
@@ -1137,21 +1137,21 @@
         }
 
         // ==========================================
-        // RECOMMENDATIONS
+        // EVENTS
         // ==========================================
         
-        const recommendation_keys =
+        const event_keys =
           Object.keys(exp_data.events);
 
-        if (!recommendation_keys.length) {
+        if (!event_keys.length) {
           error_list.push(
             "At least 1 event required"
           );
         }
 
         if (
-          new Set(recommendation_keys).size !==
-          recommendation_keys.length
+          new Set(event_keys).size !==
+          event_keys.length
         ) {
 
           error_list.push(
@@ -1161,13 +1161,13 @@
         }
 
         // ==========================================
-        // ACTIVE RECOMMENDATION KEY UNIQUENESS
+        // ACTIVE EVENT KEY UNIQUENESS
         // ==========================================
 
         if (exp_data.status === "active") {
 
           const active_key_conflicts =
-            findActiveRecommendationConflicts(
+            findActiveEventConflicts(
               exp_data,
               editingId
             );
@@ -1339,13 +1339,13 @@
         }
 
         // ==========================================
-        // ACTIVE RECOMMENDATION KEY UNIQUENESS
+        // ACTIVE EVENT KEY UNIQUENESS
         // ==========================================
 
         if (status === "active") {
 
           const active_key_conflicts =
-            findActiveRecommendationConflicts(
+            findActiveEventConflicts(
               exp_data,
               exp_data.id
             );
@@ -1416,7 +1416,7 @@
               // so the SDK can filter experiments before
               // downloading the full experiment JSON.
               target: exp_item.target || {},
-              recommendation_keys: Object.keys(
+              event_keys: Object.keys(
                 exp_item.events || {}
               ),
               config_url:
@@ -1462,7 +1462,7 @@
               // which experiments are relevant before downloading
               // the full experiment configuration.
               target: experiment_item.target || {},
-              recommendation_keys: Object.keys(
+              event_keys: Object.keys(
                 experiment_item.events || {}
               ),
               config_url:
