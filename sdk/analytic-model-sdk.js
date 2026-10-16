@@ -197,7 +197,7 @@
     return r.json();
   }
 
-  // Builds window.dsrec from the selected experiment.
+  // Builds window.experimentAssignments from the selected experiment.
   // Static events are always included when an experiment matches.
   // Experiment events are included only when a model was assigned.
   function build(exp, chosen) {
@@ -287,7 +287,7 @@
   }
 
   // Initializes the SDK, loads active experiments, resolves targeting,
-  // performs deterministic assignment, and builds window.dsrec.
+  // performs deterministic assignment, and builds window.experimentAssignments.
   S.init = async function (o) {
     if (S.ready) return S.ready;
 
@@ -363,7 +363,7 @@
 
         if (cs.length) {
           S.state.status = "conflict";
-          w.dsrec = {};
+          w.experimentAssignments = {};
           w.dsrecExperiments = {};
           throw Error("Conflicting active experiments");
         }
@@ -373,7 +373,7 @@
         // impression tags waiting for experiment-model_sdk_ready
         // can continue their normal flow.
         if (!list.length) {
-          w.dsrec = {};
+          w.experimentAssignments = {};
           w.dsrecExperiments = {};
 
           S.state.status = "no_matching_experiment";
@@ -391,7 +391,7 @@
         // Static events can still be used because they do not
         // require model assignment.
         if (unresolved(o.userId)) {
-          w.dsrec = buildStatic(list);
+          w.experimentAssignments = buildStatic(list);
           w.dsrecExperiments = {};
 
           S.state.status = "no_user_id";
@@ -502,7 +502,7 @@
         }
 
         // Expose the final frontend object.
-        w.dsrec = finalConfig;
+        w.experimentAssignments = finalConfig;
 
         // Expose event-key-level experiment information.
         // Impression tracking can use:
@@ -554,7 +554,7 @@
         S.state.assignments = {};
         S.state.assignment = null;
 
-        w.dsrec = w.dsrec || {};
+        w.experimentAssignments = w.experimentAssignments || {};
         w.dsrecExperiments = {};
       } finally {
         S.state.ready = true;
@@ -590,7 +590,7 @@
 
   // Returns the final event configuration consumed by the frontend.
   S.getConfig = function () {
-    return w.dsrec ? clone(w.dsrec) : null;
+    return w.experimentAssignments ? clone(w.experimentAssignments) : null;
   };
 
   // Returns the SDK state for debugging.
