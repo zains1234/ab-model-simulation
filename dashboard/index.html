@@ -1428,6 +1428,16 @@
             })),
         });
       }
+      async function toFolderName(input) {
+        const data = new TextEncoder().encode(String(input));
+        const hash = await crypto.subtle.digest("SHA-256", data);
+
+        const hex = Array.from(new Uint8Array(hash))
+            .map(byte => byte.toString(16).padStart(2, "0"))
+            .join("");
+
+        return `folder_${hex}`;
+      }
       async function exportAll() {
         if (typeof JSZip === "undefined") {
           alert("JSZip library is not loaded.");
@@ -1436,82 +1446,82 @@
 
         const zip = new JSZip();
 
+        // Get active experiments and calculate folder names once.
+        const active_experiments = await Promise.all(
+          experiments
+            .filter(
+              (experiment_item) =>
+                experiment_item.status === "active"
+            )
+            .map(async (experiment_item) => ({
+              item: experiment_item,
+              folder_name: await toFolderName(
+                experiment_item.name
+              ),
+            }))
+        );
+
         /*
         * Generate index.json.
-        *
-        * Only ACTIVE experiments are included in the production manifest
-        * because the SDK should only load experiments that are currently active.
+        * Only active experiments are included.
         */
         const manifest = {
           schema_version: 3,
           config_version: Date.now(),
           generated_at: new Date().toISOString(),
 
-          experiments: experiments
-            .filter(
-              (experiment_item) =>
-                experiment_item.status === "active"
-            )
-            .map((experiment_item) => ({
-              id: experiment_item.id,
-              name: experiment_item.name,
-              version: experiment_item.version,
-              status: experiment_item.status,
+          experiments: active_experiments.map(
+            ({ item, folder_name }) => ({
+              id: item.id,
+              name: item.name,
+              version: item.version,
+              status: item.status,
 
-              // Target metadata allows the SDK to determine
-              // which experiments are relevant before downloading
-              // the full experiment configuration.
-              target: experiment_item.target || {},
-              event_keys: Object.keys(
-                experiment_item.events || {}
-              ),
+              target: item.target || {},
+              event_keys: Object.keys(item.events || {}),
+
               config_url:
                 "./experiments/" +
-                experiment_item.id +
+                folder_name +
                 "/v" +
-                experiment_item.version +
+                item.version +
                 ".json",
-            })),
+            })
+          ),
         };
 
-        /*
-        * Add index.json to the root of the ZIP.
-        */
+        // Add index.json to the root of the ZIP.
         zip.file(
           "index.json",
           JSON.stringify(manifest, null, 2)
         );
 
         /*
-        * Add every active experiment using the same directory
-        * structure expected by the CDN.
+        * Add experiment configurations.
+        * Folder names match the manifest exactly.
         */
-        experiments
-          .filter((experiment_item) => experiment_item.status === "active")
-          .forEach((experiment_item) => {
+        active_experiments.forEach(
+          ({ item, folder_name }) => {
             const experiment_path =
               "experiments/" +
-              experiment_item.name +
+              folder_name +
               "/v" +
-              experiment_item.version +
+              item.version +
               ".json";
 
             zip.file(
               experiment_path,
-              JSON.stringify(experiment_item, null, 2)
+              JSON.stringify(item, null, 2)
             );
-          });
+          }
+        );
 
-        /*
-        * Generate the ZIP file.
-        */
+        // Generate the ZIP file.
         const zip_blob = await zip.generateAsync({
           type: "blob",
         });
 
-        /*
-        * Download the complete production configuration.
-        */
+        // Download the complete production configuration.
         const download_link = document.createElement("a");
 
         download_link.href = URL.createObjectURL(zip_blob);
@@ -1521,13 +1531,12 @@
         download_link.click();
         download_link.remove();
 
-        /*
-        * Release the temporary object URL.
-        */
+        // Release the temporary object URL.
         setTimeout(() => {
           URL.revokeObjectURL(download_link.href);
         }, 1000);
       }
+
       async function hash(s) {
         return AnalyticModelSDK._test.sha256(s);
       }
