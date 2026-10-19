@@ -211,6 +211,7 @@
         if (c && c.type === "static") {
           var staticValue = clone(c);
           delete staticValue.type;
+          staticValue.experiment_name = exp.name;
           out[k] = staticValue;
           return;
         }
@@ -237,6 +238,7 @@
           }
 
           out[k] = clone(selected);
+          out[k].experiment_name = exp.name;
         }
       });
     }
@@ -256,6 +258,7 @@
         if (c && c.type === "static") {
           var staticValue = clone(c);
           delete staticValue.type;
+          staticValue.experiment_name = exp.name;
           out[k] = staticValue;
         }
       });
