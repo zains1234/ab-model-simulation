@@ -3,7 +3,7 @@
 
   // Main SDK object and runtime state.
   var S = {
-    version: "1.2.1",
+    version: "1.2.2",
     ready: null,
     state: {
       status: "idle",
@@ -290,29 +290,181 @@
 
   // Initializes the SDK, loads active experiments, resolves targeting,
   // performs deterministic assignment, and builds window.experimentAssignments.
+
+  // Local cache helpers.
+  // Cache keys are scoped to the user, context, and config URL.
+  // The cache is a fast initial value only; index.json remains authoritative.
+  var CACHE_PREFIX = "analyticModelSDK:cache:v1:";
+
+  function cacheKeyFor(o) {
+    var source = JSON.stringify({
+      configUrl: String(o.configUrl || ""),
+      userId: String(o.userId == null ? "" : o.userId),
+      context: o.context || {},
+      experimentName: o.experimentName || "",
+    });
+
+    var hash = 2166136261;
+
+    for (var i = 0; i < source.length; i++) {
+      hash ^= source.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+
+    return CACHE_PREFIX + (hash >>> 0).toString(16);
+  }
+
+  function readCache(key) {
+    try {
+      var raw = w.localStorage.getItem(key);
+
+      if (!raw) {
+        return null;
+      }
+
+      var cached = JSON.parse(raw);
+
+      if (
+        !cached ||
+        cached.cacheSchema !== 1 ||
+        !cached.metadata ||
+        !cached.experimentAssignments ||
+        !cached.dsrecExperiments
+      ) {
+        w.localStorage.removeItem(key);
+        return null;
+      }
+
+      return cached;
+    } catch (err) {
+      // localStorage may be disabled or unavailable.
+      return null;
+    }
+  }
+
+  function clearCache(key) {
+    try {
+      if (key) {
+        w.localStorage.removeItem(key);
+      }
+    } catch (err) {
+      // Storage errors must not break the SDK.
+    }
+  }
+
+  function writeCache(key, metadata, validUserId) {
+    if (!key || !metadata || !validUserId) {
+      return;
+    }
+
+    try {
+      w.localStorage.setItem(
+        key,
+        JSON.stringify({
+          cacheSchema: 1,
+          metadata: metadata,
+          experimentAssignments: w.experimentAssignments || {},
+          dsrecExperiments: w.dsrecExperiments || {},
+        })
+      );
+    } catch (err) {
+      // Quota/private-mode errors must not break assignment or tracking.
+    }
+  }
+
+  function sameManifestVersion(cached, manifest) {
+    var currentVersion = manifest.config_version || null;
+    var currentGeneratedAt = manifest.generated_at || null;
+
+    var oldVersion =
+      (cached &&
+        cached.metadata &&
+        cached.metadata.config_version) ||
+      null;
+
+    var oldGeneratedAt =
+      (cached &&
+        cached.metadata &&
+        cached.metadata.generated_at) ||
+      null;
+
+    // At least one metadata field must be published for safe invalidation.
+    if (!currentVersion && !currentGeneratedAt) {
+      return false;
+    }
+
+    return (
+      currentVersion === oldVersion &&
+      currentGeneratedAt === oldGeneratedAt
+    );
+  }
+
   S.init = async function (o) {
     if (S.ready) return S.ready;
 
     S.ready = (async function () {
+      var cacheKey = null;
+      var cachedSnapshot = null;
+      var cacheMetadata = null;
+      var validUserId = false;
+
       try {
         if (!o || !o.configUrl) {
           throw Error("configUrl is required");
         }
 
-        var ctx = o.context || {},
-          man = await get(o.configUrl);
+        var ctx = o.context || {};
 
-        // The manifest now uses schema version 3.
+        validUserId = !unresolved(o.userId);
+
+        // Publish cached output immediately, before waiting for the CDN.
+        // The manifest is fetched next and remains the source of truth.
+        if (validUserId) {
+          cacheKey = cacheKeyFor(o);
+          cachedSnapshot = readCache(cacheKey);
+
+          if (cachedSnapshot) {
+            w.experimentAssignments = clone(
+              cachedSnapshot.experimentAssignments
+            );
+
+            w.dsrecExperiments = clone(
+              cachedSnapshot.dsrecExperiments
+            );
+
+            S.state.status = "cache_pending_validation";
+          }
+        }
+
+        var man = await get(o.configUrl);
+
+        // Invalidate cached output when either published metadata field differs.
+        if (
+          cachedSnapshot &&
+          !sameManifestVersion(cachedSnapshot, man)
+        ) {
+          clearCache(cacheKey);
+          cachedSnapshot = null;
+
+          w.experimentAssignments = {};
+          w.dsrecExperiments = {};
+        }
+
+        cacheMetadata = {
+          config_version: man.config_version || null,
+          generated_at: man.generated_at || null,
+        };
+
+        // The manifest uses schema version 3.
         if (man.schema_version !== 3) {
           throw Error(
             "Unsupported manifest schema version: " +
-              man.schema_version,
+              man.schema_version
           );
         }
 
-        var list = [],
-          listHashes = [],
-          validUserId = !unresolved(o.userId);
+        var list = [];
+        var listHashes = [];
 
         // First filter using the lightweight manifest.
         // This prevents downloading experiment JSON files that
@@ -441,11 +593,11 @@
           // assignment. The same user can therefore be assigned differently
           // in different experiments.
           // Hashing was started in parallel with the config fetch above.
-          var h = listHashes[i],
-            b = bucket(h),
-            chosen = {},
-            assigned = null,
-            selectedModel = select(e.models, b);
+          var h = listHashes[i];
+          var b = bucket(h);
+          var chosen = {};
+          var assigned = null;
+          var selectedModel = select(e.models, b);
 
           // Select the model once, then reuse it for every experiment event key.
           Object.keys(e.events || {}).forEach(function (k) {
@@ -535,7 +687,7 @@
         var assignmentIds = Object.keys(assignments);
 
         if (assignmentIds.length === 1) {
-          S.state.assignment =
+          S.state.assignment = 
             clone(assignments[assignmentIds[0]]);
           delete S.state.assignment.eventKeys;
         } else {
@@ -570,20 +722,35 @@
         S.state.assignments = {};
         S.state.assignment = null;
 
-        w.experimentAssignments = w.experimentAssignments || {};
-        w.dsrecExperiments = {};
+        // Do not keep an unvalidated cached result active if the manifest
+        // cannot be fetched or parsed.
+        if (cachedSnapshot) {
+          clearCache(cacheKey);
+
+          w.experimentAssignments = {};
+          w.dsrecExperiments = {};
+        } else {
+          w.experimentAssignments =
+            w.experimentAssignments || {};
+
+          w.dsrecExperiments = {};
+        }
       } finally {
         S.state.ready = true;
 
+        // Save successful output for a faster subsequent page load.
+        // Never cache assignments when the user ID is missing/unresolved.
+        if (
+          S.state.status !== "error" &&
+          cacheMetadata &&
+          validUserId
+        ) {
+          writeCache(cacheKey, cacheMetadata, validUserId);
+        }
+
         // Always fire the SDK ready event.
-        // This fires even when:
-        // - no experiment exists
-        // - no experiment matches
-        // - user ID is missing
-        // - user is unassigned
-        // - an SDK error occurs
-        //
-        // Impression tags can use this event as their sequencing point.
+        // This fires even when no experiment matches, the user ID is missing,
+        // the user is unassigned, or an SDK error occurs.
         if (w.dataLayer) {
           w.dataLayer.push({
             event: "experiment-model_sdk_ready",
