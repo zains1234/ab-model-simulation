@@ -3,7 +3,7 @@
 
   // Main SDK object and runtime state.
   var S = {
-    version: "1.2.0",
+    version: "1.2.1",
     ready: null,
     state: {
       status: "idle",
@@ -100,8 +100,7 @@
     }
   }
 
-  // Validates either a static event or an experiment
-  // event.
+  // Validates either a static event or an experiment event.
   function validateEvent(c, ms) {
     if (!c || typeof c !== "object") {
       throw Error("Invalid event");
@@ -311,7 +310,9 @@
           );
         }
 
-        var list = [];
+        var list = [],
+          listHashes = [],
+          validUserId = !unresolved(o.userId);
 
         // First filter using the lightweight manifest.
         // This prevents downloading experiment JSON files that
@@ -332,12 +333,26 @@
         // target check are downloaded.
         var loaded = await Promise.all(
           candidates.map(function (e0) {
-            return get(new URL(e0.config_url, o.configUrl));
+            // Start the config request and deterministic hash together.
+            // Hashing can finish while the experiment JSON is downloading.
+            return Promise.all([
+              get(new URL(e0.config_url, o.configUrl)),
+              validUserId
+                ? sha256(e0.id + ":" + String(o.userId))
+                : Promise.resolve(null),
+            ]).then(function (result) {
+              return {
+                experiment: result[0],
+                hash: result[1],
+              };
+            });
           }),
         );
 
         // Validate every matching experiment configuration.
-        loaded.forEach(function (e) {
+        loaded.forEach(function (loadedItem) {
+          var e = loadedItem.experiment;
+
           if (e.schema_version !== 2) {
             throw Error(
               "Unsupported experiment schema version: " +
@@ -356,6 +371,7 @@
           // JSON remains the authoritative configuration.
           if (e.status === "active" && match(e.target, ctx)) {
             list.push(e);
+            listHashes.push(loadedItem.hash);
           }
         });
 
@@ -393,7 +409,7 @@
         // Without a valid user ID there is no deterministic assignment.
         // Static events can still be used because they do not
         // require model assignment.
-        if (unresolved(o.userId)) {
+        if (!validUserId) {
           w.experimentAssignments = buildStatic(list);
           w.dsrecExperiments = {};
 
@@ -424,27 +440,24 @@
           // Experiment ID + user ID creates an experiment-specific deterministic
           // assignment. The same user can therefore be assigned differently
           // in different experiments.
-          var h = await sha256(
-              e.id + ":" + String(o.userId),
-            ),
+          // Hashing was started in parallel with the config fetch above.
+          var h = listHashes[i],
             b = bucket(h),
             chosen = {},
-            assigned = null;
+            assigned = null,
+            selectedModel = select(e.models, b);
 
-          // Select one model for all experiment event keys
-          // inside this experiment.
+          // Select the model once, then reuse it for every experiment event key.
           Object.keys(e.events || {}).forEach(function (k) {
             var c = e.events[k];
 
             if (c.type === "experiment") {
-              var m = select(e.models, b);
-
               // null means the bucket is outside the configured model coverage.
-              if (m) {
-                chosen[k] = m;
+              if (selectedModel) {
+                chosen[k] = selectedModel;
 
                 if (assigned === null) {
-                  assigned = m.name;
+                  assigned = selectedModel.name;
                 }
               }
             }
