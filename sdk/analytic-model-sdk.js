@@ -304,14 +304,7 @@
       experimentName: o.experimentName || "",
     });
 
-    var hash = 2166136261;
-
-    for (var i = 0; i < source.length; i++) {
-      hash ^= source.charCodeAt(i);
-      hash = Math.imul(hash, 16777619);
-    }
-
-    return CACHE_PREFIX + (hash >>> 0).toString(16);
+    return CACHE_PREFIX + encodeURIComponent(source);
   }
 
   function readCache(key) {
