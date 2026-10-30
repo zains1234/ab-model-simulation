@@ -1,0 +1,1411 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ABTEST — Experiment Platform</title>
+<style>
+:root{--ink:#202020;--muted:#858585;--line:#e9e9e9;--soft:#f7f7f7;--green:#08a64b;--dark:#1d1d1d;--radius:5px}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}header{height:64px;border-bottom:1px solid #f1f1f1;display:flex;align-items:center;padding:0 40px;gap:14px;background:#fff;position:sticky;top:0;z-index:10}.brand-mark{width:28px;height:28px;border-radius:6px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-size:15px}.brand{font-weight:700;letter-spacing:-.3px}.brand-sub{color:#aaa;margin-left:28px;font-size:12px}.header-right{margin-left:auto;display:flex;gap:30px;align-items:center;font-size:12px}.header-right a{color:inherit;text-decoration:none}main{max-width:1440px;margin:0 auto;padding:38px 40px 60px}.page{display:none}.page.active{display:block}.page-heading{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}.page-heading h1{font-size:24px;letter-spacing:-.6px;margin:0 0 2px;font-weight:650}.sub{color:#999;font-size:12px}.toolbar,.inline{display:flex;align-items:center;gap:10px}.btn{border:1px solid #dedede;border-radius:5px;padding:10px 14px;background:#fff;color:#222;font-size:12px;font-weight:550;cursor:pointer;white-space:nowrap}.btn:hover{background:#f8f8f8}.btn.primary{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.btn.primary:hover{background:#333}.btn.small{padding:7px 10px}.btn.link{border:0;padding:6px 4px}.btn:disabled{opacity:.4;cursor:not-allowed}.tabs{display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--line);margin-bottom:22px;min-height:42px}.tab{border:0;background:none;padding:0 0 13px;color:#999;font-size:12px;cursor:pointer;position:relative}.tab.active{color:#171717;font-weight:600}.tab.active:after{content:"";height:2px;background:#222;position:absolute;bottom:-1px;left:0;right:0}.tab-count{color:#aaa;margin-left:4px}.home-filters{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:18px 0}.search{width:min(460px,100%);position:relative}.search input{padding-left:34px}.search:before{content:"⌕";position:absolute;left:12px;top:7px;color:#777;font-size:19px}.filters{display:flex;gap:12px}.filters select{width:auto;min-width:130px}.field,input,select,textarea{font:inherit;color:#222}input,select,textarea{width:100%;border:1px solid #e3e3e3;border-radius:4px;padding:10px 11px;background:#fff;font-size:12px;outline:none}input:focus,select:focus,textarea:focus{border-color:#999}.input-container{display:flex;flex-direction:column;gap:7px;min-width:0}label{font-size:12px;color:#555}.required{color:#222}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:720px}th{text-align:left;color:#999;font-size:10px;font-weight:500;padding:12px 10px;border-bottom:1px solid var(--line)}td{font-size:12px;padding:15px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}tbody tr{cursor:pointer}tbody tr:hover{background:#fafafa}tbody tr.selected{background:#fafafa}td .muted{margin-top:3px}.muted{color:#999;font-size:11px}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:#aaa}.status.active{color:var(--green)}.status.active:before{background:var(--green)}.status.paused{color:#b98220}.status.paused:before{background:#d8a33d}.status.completed{color:#777}.status.draft{color:#999}.status.archived{color:#999}.row-actions{display:flex;gap:6px}.row-actions .btn{padding:5px 8px}.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;color:#999;font-size:11px}.pagination .inline{gap:18px}.home-bottom{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:52px;margin-top:42px}.current-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.current-title h2{font-size:16px;margin:0;font-weight:600}.current-list{display:flex;flex-direction:column;gap:14px;margin-top:14px;max-height:260px;overflow:auto;padding-right:8px}.config-item{border:1px solid var(--line);border-radius:5px;padding:15px}.config-item.selected{border-color:#aaa}.config-item-head{display:flex;justify-content:space-between;gap:12px}.config-item h3{font-size:13px;margin:0 0 3px}.audience-line{font-size:11px;color:#777;margin-top:14px}.config-meta{font-size:11px;color:#888;margin-top:8px}.allocation{height:7px;border-radius:2px;display:flex;overflow:hidden;background:#eee;margin:10px 0 7px}.allocation span{height:100%;display:block}.legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10px;color:#777}.legend-items{display:flex;gap:14px;flex-wrap:wrap}.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}.config-actions{display:flex;gap:18px;margin-top:13px}.config-actions button{font-size:11px}.explain h3{font-size:14px;margin:0 0 12px}.explain p{color:#999;font-size:11px;line-height:1.7}.checks{list-style:none;padding:0;margin:25px 0 12px}.checks li{font-size:11px;margin:10px 0;color:#555}.checks li:before{content:"✓";color:var(--green);margin-right:9px}.workspace-foot{display:flex;justify-content:space-between;margin-top:42px;padding-top:15px;border-top:1px solid #f2f2f2;color:#bbb;font-size:10px}.breadcrumb{display:flex;gap:12px;color:#999;font-size:11px;margin:0 0 24px}.breadcrumb a{color:inherit;text-decoration:none;cursor:pointer}.detail-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.detail-heading h1{font-size:24px;margin:0 12px 2px 0;display:inline-block}.saved{font-size:11px;color:#777}.detail-tabs{margin-bottom:28px}.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.section{padding:0 0 28px;margin-bottom:25px;border-bottom:1px solid #f0f0f0}.section-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}.section h2{font-size:15px;margin:0 0 4px;font-weight:650}.section-desc{font-size:11px;color:#999}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.form-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.target-row{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.target-row.default .target-key{background:#fafafa;color:#666}.model-row{display:grid;grid-template-columns:minmax(130px,1fr) 150px minmax(120px,1fr) auto;gap:12px;align-items:center;margin:10px 0}.model-row input{min-width:0}.model-meta{font-size:11px;color:#999}.total{font-size:11px;color:#777;margin-top:13px}.allocation.large{height:10px;margin:16px 0 10px}.event-card{border:1px solid var(--line);border-radius:5px;padding:15px;margin:12px 0}.event-card .section-title{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.rec-model-row{display:grid;grid-template-columns:130px 1fr 110px 1fr;gap:10px;align-items:center;margin:10px 0}.rec-static-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.detail-aside{padding-top:4px}.aside-card{border:1px solid #eee;padding:16px;border-radius:5px;margin-bottom:14px}.aside-card h3{font-size:13px;margin:0 0 12px}.aside-card p{font-size:11px;color:#999;line-height:1.7}.aside-list{padding-left:16px;color:#777;font-size:11px;line-height:2}.test-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.test-grid .section{border:0}.context-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px;margin-top:14px}.context-status{color:var(--green);font-size:11px;margin-top:18px}.test-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}.test-actions .btn.active{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.results{border-top:1px solid #eee;padding-top:24px;margin-top:20px}.results-head{display:flex;justify-content:space-between;align-items:center}.results h2{font-size:15px;margin:0}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.result-number{font-size:23px;font-weight:650;margin:4px 0}.result-bar{display:flex;height:14px;gap:4px;margin:16px 0}.result-bar span{border-radius:3px}.result-foot{display:flex;justify-content:space-between;color:#999;font-size:10px}.raw-response{margin-top:25px;border-top:1px solid #eee;padding-top:14px}.raw-response summary{cursor:pointer;color:#777;font-size:11px}pre{background:#f7f7f7;color:#333;border:1px solid #eee;border-radius:4px;padding:14px;overflow:auto;font-size:11px;white-space:pre-wrap;word-break:break-word}.hidden{display:none!important}.error{color:#b42318;font-size:11px;margin:12px 0}.success{color:var(--green);font-size:11px;margin:12px 0}.empty{padding:28px;text-align:center;color:#aaa;font-size:12px}
+@media(max-width:900px){main{padding:28px 22px}.detail-layout,.test-grid{grid-template-columns:1fr;gap:20px}.detail-aside{display:grid;grid-template-columns:1fr 1fr;gap:12px}.home-bottom{grid-template-columns:1fr;gap:28px}.form-grid.four{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){header{padding:0 16px}.brand-sub{display:none}.header-right{gap:12px}main{padding:22px 15px}.page-heading,.detail-heading{gap:16px;align-items:flex-start;flex-direction:column}.toolbar{width:100%}.tabs{gap:16px;overflow:auto}.home-filters{align-items:stretch;flex-direction:column}.filters{width:100%}.filters select{flex:1;min-width:0}.form-grid,.form-grid.four,.context-grid,.result-grid{grid-template-columns:1fr}.target-row{grid-template-columns:1fr 1fr auto}.model-row{grid-template-columns:1fr 100px auto}.model-row .model-meta{grid-column:1/-1}.rec-model-row,.rec-static-fields{grid-template-columns:1fr}.detail-aside{display:block}.config-actions{flex-wrap:wrap}}
+</style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  </head>
+  <body>
+<header><div class="brand-mark">♟</div><div class="brand">ABTEST</div><div class="brand-sub">Experiment platform</div><nav class="header-right"><a href="#" onclick="showHome();return false">Experiments</a><a href="#" onclick="alert('Quick guide: create an experiment, configure its audience and variants, then simulate assignment before activation.');return false">ⓘ Quick guide</a></nav></header>
+<main>
+<section id="home_page" class="page active">
+ <div class="page-heading"><div><h1>Experiments</h1><div class="sub">Test features, flows, content, and models across projects.</div></div><div class="toolbar"><button class="btn" onclick="exportManifest()">⇩ &nbsp;Export</button><button class="btn primary" onclick="newExperiment()">＋ &nbsp;New experiment</button></div></div>
+ <div class="tabs" id="home_status_tabs"><button class="tab active" data-status="all" onclick="setHomeStatus('all')">All experiments <span class="tab-count" id="count_all">0</span></button><button class="tab" data-status="active" onclick="setHomeStatus('active')">Active <span class="tab-count" id="count_active">0</span></button><button class="tab" data-status="paused" onclick="setHomeStatus('paused')">Paused <span class="tab-count" id="count_paused">0</span></button><button class="tab" data-status="draft" onclick="setHomeStatus('draft')">Draft <span class="tab-count" id="count_draft">0</span></button><button class="tab" data-status="completed" onclick="setHomeStatus('completed')">Completed <span class="tab-count" id="count_completed">0</span></button></div>
+ <div class="home-filters"><div class="search"><input id="search_exp" placeholder="Search by experiment name or ID" /></div><div class="filters"><select id="project_filter" onchange="render()"><option value="">All projects</option></select><select id="archive_filter" onchange="render()"><option value="">Archived</option><option value="show">Show archived</option><option value="hide">Hide archived</option></select></div></div>
+ <div class="table-wrap"><table><thead><tr><th>Experiment</th><th>Status</th><th>Audience</th><th>Version</th><th>Actions</th></tr></thead><tbody id="experiment_rows"></tbody></table></div>
+ <div class="pagination"><span id="pagination_info">Showing 0 experiments</span><div class="inline"><button class="btn link" onclick="changePage(-1)">Previous</button><button class="btn link" onclick="changePage(1)">Next</button></div></div>
+ <div class="home-bottom"><section><div class="current-title"><div><h2>Current configuration</h2><div class="muted" id="current_config_sub">All experiments</div></div></div><div id="current_configuration_list" class="current-list"></div></section><aside class="explain"><h3>ⓘ &nbsp;How assignment works</h3><p>Users keep the same variant while their ID and configuration stay the same.</p><ul class="checks"><li>All audience rules must match</li><li>Variant allocation must total 100%</li><li>Each key needs a value per variant</li></ul><p>Test a configuration before you activate it.</p></aside></div>
+ <div class="workspace-foot"><span>Configuration workspace</span><span>No performance results connected</span></div>
+</section>
+<section id="detail_page" class="page"><span id="create_edit_experiment" class="hidden"></span><input id="simulation_id" class="hidden" value="" />
+ <div class="breadcrumb"><a onclick="showHome()">Experiments</a><span>›</span><span id="breadcrumb_name">New experiment</span><span>›</span><span id="breadcrumb_tab">Configuration</span></div>
+ <div class="detail-heading"><div><div class="inline" style="gap:10px;align-items:center"><h1 id="detail_title">New experiment</h1><span id="detail_status" class="status draft">Draft</span></div><div class="sub" id="detail_subtitle">Configure audience and variant assignment.</div></div><div class="saved" id="saved_version">Unsaved configuration</div></div>
+ <div class="tabs detail-tabs"><button id="configuration_tab" class="tab active" onclick="showDetailTab('configuration')">Configuration</button><button id="simulation_tab" class="tab" onclick="showDetailTab('simulation')">Simulation</button></div>
+ <section id="configuration_view" class="detail-layout"><div>
+  <section class="section"><div class="section-head"><div><h2>Experiment details</h2><div class="section-desc">Identify and manage this experiment.</div></div></div><div class="form-grid"><div class="input-container"><label>Experiment name <span class="required">*</span></label><input id="experiment_name" maxlength="16" placeholder="e.g. Checkout test" /></div><div class="input-container"><label>Experiment ID <span class="required">*</span></label><input id="experiment_id" oninput="preventWhitespace(this)" placeholder="checkout_flow_001" /></div><div class="input-container"><label>Status <span class="required">*</span></label><select id="experiment_status"><option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option><option value="archived">Archived</option></select></div><div class="input-container"><label>Version update</label><div class="inline"><input id="experiment_version" readonly value="1.0"/><select id="version_type" aria-label="Version update type"><option value="minor">Minor update</option><option value="major">Major update</option></select></div><div class="muted">Version increments automatically when you save changes.</div></div></div></section>
+  <section class="section"><div class="section-head"><div><h2>Audience targeting</h2><div class="section-desc">All four default audience rules are required. Add custom dimensions when needed.</div></div><button class="btn small" type="button" onclick="addExpTarget()">＋ Add target</button></div><div id="experiment_target"></div></section>
+  <section class="section"><div class="section-head"><div><h2>Variants model</h2><div class="section-desc">Allocate traffic across variants. Any remaining percentage is unassigned.</div></div><button class="btn small" type="button" onclick="addModel()">＋ Add variant</button></div><div id="model_list_section"></div><div id="model_total" class="total"></div><div id="model_allocation_bar" class="allocation large"></div><div id="model_allocation_legend" class="legend"></div></section>
+  <section class="section"><div class="section-head"><div><h2>Variant configuration</h2><div class="section-desc">Define the event keys and the configuration used by each variant.</div></div><button class="btn small" type="button" onclick="addRec()">＋ Add event</button></div><div id="recomendation_list_section"></div></section>
+  <div id="valid"></div><div class="toolbar"><button class="btn primary" onclick="saveExperiment()">Save configuration</button><button class="btn" onclick="closeExperiment()">Cancel</button></div>
+ </div><aside class="detail-aside"><div class="aside-card"><h3>Audience matching</h3><p>A user is eligible when every configured target field matches the request context. Default fields are always required.</p><ul class="aside-list"><li>Project</li><li>Environment</li><li>Platform</li><li>Feature</li><li>Optional custom dimensions</li></ul></div><div class="aside-card"><h3>Variant allocation</h3><p>Variant percentages determine deterministic assignment. If the total is below 100%, the remainder is reported as unassigned.</p></div></aside></section>
+ <section id="simulation_view" class="test-grid hidden"><div>
+  <section class="section"><div class="section-head"><div><h2>Test request</h2><div class="section-desc">Use a sample user and context to check variant assignment.</div></div></div><div class="form-grid"><div class="input-container"><label>User ID <span class="required">*</span></label><input id="simulation_user_id" value="123456" placeholder="Enter user ID"/><div class="muted">The same ID should receive a stable assignment.</div></div><div class="input-container"><label>Number of users <span class="required">*</span></label><input id="total_users" type="number" min="1" value="1000"/><div class="muted">Used for distribution tests.</div></div></div>
+   <div class="section-head" style="margin-top:24px"><div><h2>Request context</h2><div class="section-desc">The request must match the audience targeting rules.</div></div><button class="btn link" onclick="toggleContextJson()">Edit as JSON</button></div><div id="simulation_context_fields" class="context-grid"></div><div id="simulation_context_custom"></div><textarea id="context" class="hidden" rows="5">{"project":"storefront","environment":"production","platform":"web","feature":"checkout"}</textarea><div id="context_match_status" class="context-status"></div>
+  </section>
+  <div class="test-actions"><button class="btn primary active" id="run_distribution_btn" onclick="runSimulationTest('distribution')">▷ &nbsp;Run distribution</button><button class="btn" id="inspect_btn" onclick="runSimulationTest('inspect')">⌕ &nbsp;Inspect user</button><button class="btn" id="consistency_btn" onclick="runSimulationTest('consistency')">⊙ &nbsp;Check consistency</button></div>
+  <section class="results"><div class="results-head"><div><h2 id="result_title">Distribution results</h2><div class="section-desc" id="result_subtitle">Illustrative preview · 1,000 simulated users</div></div><span class="muted">Demo result</span></div><div id="simulation_visual_results"><div class="empty">Run a test to see assignment results.</div></div><details class="raw-response"><summary>Raw response</summary><pre id="simulation_output">Ready.</pre></details></section>
+ </div><aside class="detail-aside"><div class="aside-card"><h3>What each test checks</h3><h4 style="font-size:11px;margin:18px 0 4px">Distribution</h4><p>Simulate many users to compare observed traffic with configured variant allocation.</p><h4 style="font-size:11px;margin:18px 0 4px">Inspect user</h4><p>See a user's assigned variant and its configuration values.</p><h4 style="font-size:11px;margin:18px 0 4px">Consistency</h4><p>Repeat the same request to check whether assignment stays stable.</p></div><div class="aside-card"><p>These tests check assignment behavior. They do not measure business outcomes.</p></div></aside></section>
+</section>
+</main>
+        <script src="https://cdn.detik.net.id/analytic-model/sdk/analytic-model-sdk.js"></script>
+    <script>
+      const CONFIG_URL = "https://cdn.detik.net.id/analytic-model/config/production/index.json"
+      let experiments = [];
+      let editingId = null;
+      let homeStatus = "all", currentPage = 1, pageSize = 8, selectedPreviewId = null, detailTab = "configuration";
+      const DEFAULT_TARGETS = ["project", "environment", "platform", "feature"];
+      const MODEL_COLORS = ["#202020", "#bdbdbd", "#7b9bba", "#d4b27a", "#8aa68b", "#a99ac4"];
+
+      async function loadConfiguration() {
+        try {
+
+          const response = await fetch(CONFIG_URL);
+
+          if (!response.ok) {
+            throw new Error(
+              "Failed to load configuration: HTTP " + response.status
+            );
+          }
+
+          const manifest = await response.json();
+
+          if (manifest.schema_version !== 3) {
+            throw new Error(
+              "Unsupported configuration schema: " +
+              manifest.schema_version
+            );
+          }
+
+          experiments = [];
+
+          for (const manifestExperiment of manifest.experiments || []) {
+
+            const response = await fetch(
+              new URL(
+                manifestExperiment.config_url,
+                CONFIG_URL
+              )
+            );
+
+            if (!response.ok) {
+              throw new Error(
+                "Failed to load experiment: " +
+                manifestExperiment.id
+              );
+            }
+
+            const experiment = await response.json();
+
+            experiments.push(
+              migrateExperiment(experiment)
+            );
+          }
+
+          render();
+
+        } catch (error) {
+
+          console.error("Configuration loading failed:", error);
+
+          document.getElementById("experiment_rows").innerHTML =
+            '<div class="empty">' +
+            'Failed to load configuration.<br>' +
+            escapeHtml(error.message) +
+            "</div>";
+        }
+      }
+      function migrateExperiment(exp_item) {
+        exp_item = exp_item || {};
+        if (!Array.isArray(exp_item.models)) {
+          const first = Object.values(exp_item.events || {}).find(
+            (rec_item) => rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models),
+          );
+          exp_item.models = (first ? first.models : []).map((model_item) => ({
+            name: model_item.name,
+            percentage: Number(model_item.percentage),
+          }));
+        }
+        exp_item.models = exp_item.models.map((model_item) => ({
+          name: String(model_item.name || ""),
+          percentage: Number(model_item.percentage || 0),
+        }));
+        Object.keys(exp_item.events || {}).forEach((rec_key) => {
+          const rec_item = exp_item.events[rec_key];
+          if (rec_item && rec_item.type === "experiment" && Array.isArray(rec_item.models)) {
+            const map = {};
+            rec_item.models.forEach((model_item) => {
+              map[model_item.name] = {
+                src: model_item.src || "internal",
+                url: model_item.url || "",
+                tracking_rec: model_item.tracking_rec || model_item.name,
+              };
+            });
+            exp_item.events[rec_key] = { type: "experiment", models: map };
+          }
+        });
+        exp_item.target=exp_item.target||{};
+        exp_item.version=normalizeVersion(exp_item.version);
+        exp_item.schema_version = 2;
+        return exp_item;
+      }
+      function escapeHtml(x) {
+        return String(x ?? "").replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+      function save() {
+        render();
+      }
+      function render() {
+        const search_exp = document.getElementById("search_exp").value.toLowerCase();
+        const projectFilter = document.getElementById("project_filter").value;
+        const archiveFilter = document.getElementById("archive_filter").value;
+        ["all","active","paused","draft","completed"].forEach(status => {
+          const count = status === "all" ? experiments.filter(x=>x.status!=="archived").length : experiments.filter(x=>x.status===status).length;
+          const el=document.getElementById("count_"+status); if(el) el.textContent=count;
+        });
+        const projects=[...new Set(experiments.map(x=>(x.target||{}).project).filter(Boolean))];
+        const projectSelect=document.getElementById("project_filter"), previousProject=projectSelect.value;
+        projectSelect.innerHTML='<option value="">All projects</option>'+projects.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("");
+        projectSelect.value=projects.includes(previousProject)?previousProject:"";
+        let filtered=experiments.filter(exp=>{
+          const statusOk=homeStatus==="all" ? (archiveFilter==="show" || exp.status!=="archived") : exp.status===homeStatus;
+          const archiveOk=homeStatus==="all" && archiveFilter==="hide" ? exp.status!=="archived" : true;
+          const queryOk=!search_exp || (String(exp.id)+" "+String(exp.name)).toLowerCase().includes(search_exp);
+          const projectOk=!projectSelect.value || (exp.target||{}).project===projectSelect.value;
+          return statusOk && archiveOk && queryOk && projectOk;
+        });
+        const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize)); currentPage=Math.min(currentPage,totalPages);
+        const visible=filtered.slice((currentPage-1)*pageSize,currentPage*pageSize);
+        document.getElementById("experiment_rows").innerHTML=visible.map(exp=>{
+          const target=exp.target||{}; const audience=[target.project,target.environment].filter(Boolean).join(" / "); const detail=[target.platform,target.feature].filter(Boolean).join(" · ");
+          return `<tr data-id="${escapeHtml(exp.id)}" class="${selectedPreviewId===exp.id?'selected':''}" onclick="selectPreview('${escapeHtml(exp.id)}')"><td><b>${escapeHtml(exp.name)}</b><div class="muted">${escapeHtml(exp.id)}</div></td><td><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status[0].toUpperCase()+exp.status.slice(1))}</span></td><td>${escapeHtml(audience||"—")}<div class="muted">${escapeHtml(detail)}</div></td><td>v${escapeHtml(exp.version||"1.0")}</td><td><div class="row-actions"><button class="btn" onclick="event.stopPropagation();openExperiment('${escapeHtml(exp.id)}','configuration')">→</button><button class="btn" onclick="event.stopPropagation();openExperiment('${escapeHtml(exp.id)}','configuration')">···</button></div></td></tr>`;
+        }).join("") || '<tr><td colspan="5" class="empty">No experiments found</td></tr>';
+        document.getElementById("pagination_info").textContent=filtered.length?`Showing ${(currentPage-1)*pageSize+1}–${Math.min(currentPage*pageSize,filtered.length)} of ${filtered.length} experiments`:"Showing 0 experiments";
+        renderCurrentConfigurations(filtered);
+      }
+      function setHomeStatus(status){homeStatus=status;currentPage=1;document.querySelectorAll("#home_status_tabs .tab").forEach(t=>t.classList.toggle("active",t.dataset.status===status));render();}
+      function changePage(direction){currentPage=Math.max(1,currentPage+direction);render();}
+      function selectPreview(id){selectedPreviewId=selectedPreviewId===id?null:id;render();}
+      function renderCurrentConfigurations(list=experiments){
+        const selected=selectedPreviewId?experiments.filter(x=>x.id===selectedPreviewId):list;
+        document.getElementById("current_config_sub").textContent=selectedPreviewId?(selected[0]?.name||"Selected experiment"):"Experiment overview";
+        document.getElementById("current_configuration_list").innerHTML=selected.length?selected.map(exp=>{
+          const target=exp.target||{}, models=exp.models||[], total=models.reduce((s,m)=>s+Number(m.percentage||0),0), remaining=Math.max(0,100-total);
+          const bars=models.map((m,i)=>`<span style="width:${Math.max(0,Number(m.percentage)||0)}%;background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></span>`).join("")+`<span style="width:${remaining}%;background:#eee"></span>`;
+          const legend=models.map((m,i)=>`<span><i class="dot" style="background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></i>${escapeHtml(m.name)} &nbsp;${Number(m.percentage)||0}%</span>`).join("")+ (remaining>0?`<span><i class="dot" style="background:#eee"></i>Unassigned &nbsp;${remaining.toFixed(2)}%</span>`:"");
+          return `<article class="config-item ${selectedPreviewId===exp.id?'selected':''}"><div class="config-item-head"><div><h3>${escapeHtml(exp.name)}</h3><div class="muted">${escapeHtml(exp.id)}</div></div><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status)}</span></div><div class="audience-line">Audience</div><div class="config-meta">${escapeHtml([target.project,target.environment,target.platform,target.feature].filter(Boolean).join(" · ")||"No audience configured")}</div><div class="config-meta">Configuration &nbsp; ${Object.keys(exp.events||{}).length} key · ${models.length} variant values</div><div class="config-meta">Traffic allocation</div><div class="allocation">${bars}</div><div class="legend"><div class="legend-items">${legend}</div></div><div class="config-actions"><button class="btn link" onclick="openExperiment('${escapeHtml(exp.id)}','configuration')">→ &nbsp;Open configuration</button><button class="btn link" onclick="openExperiment('${escapeHtml(exp.id)}','simulation')">▷ &nbsp;Test assignment</button></div></article>`;
+        }).join(""):'<div class="empty">No experiment configuration to display.</div>';
+      }
+      search_exp.oninput = () => {currentPage=1;render();};
+      document.getElementById("home_page").addEventListener("click", function(event){
+        if (!event.target.closest(".table-wrap") && !event.target.closest(".current-list") && selectedPreviewId) {
+          selectedPreviewId=null;
+          renderCurrentConfigurations();
+          document.querySelectorAll("#experiment_rows tr").forEach(row=>row.classList.remove("selected"));
+        }
+      });
+      function newExperiment() {
+        editingId = null;
+        document.getElementById("create_edit_experiment").textContent = "Create Experiment";
+        document.getElementById("experiment_id").value = "experiment_" + Date.now();
+        document.getElementById("experiment_name").value = "New Experiment";
+        document.getElementById("experiment_status").value = "draft";
+        document.getElementById("experiment_version").value = "1.0";
+        document.getElementById("version_type").value = "minor";
+        renderExpTarget({ project:"", environment:"", platform:"", feature:"" });
+        renderExpModels(
+          [
+            { name: "modelA", percentage: 50 },
+            { name: "modelB", percentage: 50 },
+          ],
+          { newsfeed: { type: "experiment", models: {} } },
+        );
+        document.getElementById("detail_title").textContent="New experiment"; document.getElementById("breadcrumb_name").textContent="New experiment"; document.getElementById("detail_status").textContent="Draft"; document.getElementById("detail_status").className="status draft"; document.getElementById("saved_version").textContent="Unsaved configuration"; document.getElementById("simulation_id").value=document.getElementById("experiment_id").value; document.getElementById("home_page").classList.remove("active"); document.getElementById("detail_page").classList.add("active"); showDetailTab("configuration");
+      }
+      function editExperiment(exp_id) {
+        const experiment_data = experiments.find((exp_item) => exp_item.id === exp_id);
+        if (!experiment_data) return;
+        editingId = exp_id;
+        document.getElementById("create_edit_experiment").textContent = "Edit Experiment";
+        document.getElementById("experiment_id").value = experiment_data.id;
+        document.getElementById("experiment_name").value = experiment_data.name;
+        document.getElementById("experiment_status").value = experiment_data.status;
+        document.getElementById("experiment_version").value = normalizeVersion(experiment_data.version);
+        document.getElementById("version_type").value = "minor";
+        renderExpTarget(experiment_data.target || {});
+        renderExpModels(experiment_data.models || [], experiment_data.events || {});
+        document.getElementById("detail_title").textContent=experiment_data.name; document.getElementById("breadcrumb_name").textContent=experiment_data.name; document.getElementById("detail_status").textContent=experiment_data.status[0].toUpperCase()+experiment_data.status.slice(1); document.getElementById("detail_status").className="status "+experiment_data.status; document.getElementById("saved_version").textContent="Saved configuration · v"+normalizeVersion(experiment_data.version); document.getElementById("simulation_id").value=experiment_data.id;
+      }
+      function closeExperiment() { showHome(); }
+      function renderExpTarget(exp_target) {
+        const box=document.getElementById("experiment_target"); box.innerHTML="";
+        DEFAULT_TARGETS.forEach(key=>addExpTarget(key,exp_target[key]||"",false,true));
+        Object.entries(exp_target).filter(([key])=>!DEFAULT_TARGETS.includes(key)).forEach(([key,value])=>addExpTarget(key,value,true,false));
+      }
+      function addExpTarget(key = "", value = "", custom = true, isDefault = false) {
+        const exp_target_item=document.createElement("div"); exp_target_item.className="target-row"+(isDefault?" default":"");
+        exp_target_item.innerHTML=`<div class="input-container"><label>${isDefault?key[0].toUpperCase()+key.slice(1)+" *":"Target key"}</label><input class="target-key" placeholder="key" value="${escapeHtml(key)}" ${isDefault?'readonly':''}></div><div class="input-container"><label>${isDefault?'Required value':'Target value'}</label><input class="target-value" placeholder="Enter ${escapeHtml(key||'target')} value" value="${escapeHtml(value)}" ${isDefault?'required':''}></div>${isDefault?'<span class="muted">Required</span>':'<button class="btn small" type="button" onclick="this.parentNode.remove()">Remove</button>'}`;
+        document.getElementById("experiment_target").appendChild(exp_target_item);
+      }
+      function currentModels() {
+        return [...document.querySelectorAll("#model_list_section>.model-row")].map(
+          (model_item) => ({
+            name: model_item.querySelector(".model-name").value.trim(),
+            percentage: Number(model_item.querySelector(".model-percentage").value),
+          }),
+        );
+      }
+      function currentEvents() {
+        const rec_data = {};
+
+        document
+          .querySelectorAll("#recomendation_list_section > .card")
+          .forEach((rec_item) => {
+
+            const rec_name =
+              rec_item.querySelector(".event-name")?.value.trim();
+
+            if (!rec_name) return;
+
+            if (rec_data[rec_name]) {
+              return;
+            }
+
+            const type =
+              rec_item.querySelector(".event-type")?.value ||
+              "experiment";
+
+            // ==========================================
+            // STATIC EVENT
+            // ==========================================
+
+            if (type === "static") {
+
+              rec_data[rec_name] = {
+                type: "static",
+                src:
+                  rec_item.querySelector(".rec-static-src")?.value.trim() ||
+                  "internal",
+
+                url:
+                  rec_item.querySelector(".rec-static-url")?.value.trim() ||
+                  "",
+
+                tracking_rec:
+                  rec_item.querySelector(".rec-static-tracking")?.value.trim() ||
+                  ""
+              };
+
+              return;
+            }
+
+            // ==========================================
+            // EXPERIMENT EVENT
+            // ==========================================
+
+            const models = {};
+
+            rec_item
+              .querySelectorAll(".rec-model-row")
+              .forEach((model_item) => {
+
+                const model_name = model_item.dataset.model;
+
+                models[model_name] = {
+                  src: model_item.querySelector(".rec-model-src")?.value.trim() ||
+                    "internal",
+                  url:
+                    model_item.querySelector(".rec-model-url")?.value.trim() ||
+                    "",
+                  tracking_rec: model_name
+                };
+              });
+
+            rec_data[rec_name] = {
+              type: "experiment",
+              models
+            };
+          });
+
+        return rec_data;
+      }
+      function renderExpModels(models, recs) {
+        const models_box = document.getElementById("model_list_section");
+        models_box.innerHTML = "";
+        models.forEach((model_item) => models_box.appendChild(renderModelRow(model_item)));
+        updateModelTotalPercentage();
+        syncEvents(recs || currentEvents());
+      }
+      function addModel(name, percentage, rerender = true) {
+        const models = currentModels();
+        if (!name) {
+          let i = 65;
+          do {
+            name = "model" + String.fromCharCode(i++);
+          } while (models.some((model_item) => model_item.name === name));
+        }
+        models.push({ name, percentage: Number(percentage || 0) });
+        const recs = currentEvents();
+        renderExpModels(models, recs);
+        if (rerender) updateModelTotalPercentage();
+      }
+      function removeModel(name) {
+        const models =
+          currentModels().filter(
+            (model_item) => model_item.name !== name
+          );
+
+        if (models.length < 2) {
+          alert("At least 2 models are required.");
+          return;
+        }
+
+        const recs =
+          currentEvents();
+
+        Object.values(recs).forEach((rec_item) => {
+
+          if (
+            rec_item.type === "experiment" &&
+            rec_item.models
+          ) {
+            delete rec_item.models[name];
+          }
+
+        });
+
+        renderExpModels(models, recs);
+      }
+      function renameModel(oldName, newName, models) {
+        newName = newName.trim();
+
+        if (!newName || newName === oldName) {
+          return;
+        }
+
+        if (
+          models.some(
+            (model_item) =>
+              model_item.name === newName
+          )
+        ) {
+
+          alert("Model names must be unique.");
+
+          renderExpModels(
+            models,
+            currentEvents()
+          );
+
+          return;
+        }
+
+        const recs =
+          currentEvents();
+
+        Object.values(recs).forEach((rec_item) => {
+
+          if (
+            rec_item.type === "experiment" &&
+            rec_item.models &&
+            rec_item.models[oldName]
+          ) {
+
+            rec_item.models[newName] =
+              rec_item.models[oldName];
+
+            delete rec_item.models[oldName];
+
+            rec_item.models[newName].tracking_rec =
+              newName;
+          }
+
+        });
+
+        renderExpModels(
+          models.map((model_item) =>
+            model_item.name === oldName
+              ? {
+                  name: newName,
+                  percentage: model_item.percentage
+                }
+              : model_item
+          ),
+          recs
+        );
+      }
+      function bindModelRows() {
+        document.querySelectorAll("#model_list_section .model-name").forEach((input) => {
+          input.onchange = () => {
+            const models = currentModels();
+            renameModel(input.dataset.original, input.value, models);
+          }
+        });
+        document
+          .querySelectorAll("#model_list_section .model-percentage")
+          .forEach((input) => (input.oninput = updateModelTotalPercentage));
+      }
+      function renderModelRow(model_item) {
+        const model_el = document.createElement("div");
+        model_el.className = "model-row";
+        model_el.innerHTML = `
+          <input class="model-name" data-original="${escapeHtml(model_item.name)}" value="${escapeHtml(model_item.name)}">
+          <input class="model-percentage" type="number" min="0.01" step="0.01" value="${Number(model_item.percentage)}">
+          <div class="model-meta">
+            Used by every experiment event
+          </div>
+          <button type="button" onclick="removeModel('${escapeHtml(model_item.name)}')">
+            ×
+          </button>
+        `;
+        return model_el;
+      }
+      function updateModelTotalPercentage() {
+        const total = currentModels().reduce(
+          (result, model_item) => result + Number(model_item.percentage || 0),
+          0,
+        );
+        const remaining = Math.max(0, 100 - total);
+        const valid_total = total > 0 && total <= 100 + 1e-9;
+
+        document.getElementById("model_total").textContent =
+          "Total: " +
+          total +
+          "%" +
+          (valid_total
+            ? " ✓ — Unassigned: " + remaining.toFixed(2) + "%"
+            : " — must be greater than 0% and no more than 100%");
+        bindModelRows();
+        updateAllocationVisual();
+      }
+      function syncEvents(recs) {
+        const normalized = recs || {};
+        document.getElementById("recomendation_list_section").innerHTML = "";
+        Object.entries(normalized).forEach(([key, value]) => addRec(key, value, false));
+        updateModelTotalPercentage();
+      }
+      function addRec(key = "event", value = null, rerender = true) {
+        const existing = currentEvents();
+
+        let key_value = key;
+        let n = 1;
+
+        while (existing[key_value]) {
+          key_value = key + n++;
+        }
+
+        const models = currentModels();
+
+        const event_type =
+          value && value.type
+            ? value.type
+            : "experiment";
+
+        const event_section =
+          document.createElement("div");
+
+        event_section.className = "card";
+
+        event_section.innerHTML = `
+          <div class="section-title">
+
+            <div style="display:flex; gap:8px; flex:1;">
+
+              <input
+                class="event-name"
+                placeholder="Event key"
+                oninput="preventWhitespace(this)"
+                value="${escapeHtml(key_value)}"
+              >
+
+              <select class="event-type">
+                <option
+                  value="experiment"
+                  ${event_type === "experiment" ? "selected" : ""}
+                >
+                  experiment
+                </option>
+
+                <option
+                  value="static"
+                  ${event_type === "static" ? "selected" : ""}
+                >
+                  static
+                </option>
+              </select>
+
+            </div>
+
+            <button
+              type="button"
+              onclick="this.closest('.card').remove()"
+            >
+              Remove
+            </button>
+
+          </div>
+
+          <div class="rec-model-list"></div>
+        `;
+
+        document
+          .getElementById("recomendation_list_section")
+          .appendChild(event_section);
+
+        const type_select =
+          event_section.querySelector(".event-type");
+
+        // Render the correct fields initially
+        renderEventFields(
+          event_section,
+          event_type,
+          models,
+          value
+        );
+
+        // Change between experiment and static
+        type_select.addEventListener("change", function () {
+
+          const current_value = currentEvents()[key_value];
+
+          renderEventFields(
+            event_section,
+            this.value,
+            models,
+            current_value
+          );
+
+        });
+
+        if (rerender) {
+          updateModelTotalPercentage();
+        }
+      }
+      function renderEventFields(
+        event_section,
+        event_type,
+        models,
+        value = null
+      ) {
+
+        const list =
+          event_section.querySelector(".rec-model-list");
+
+        list.innerHTML = "";
+
+        // ==========================================
+        // STATIC
+        // ==========================================
+
+        if (event_type === "static") {
+
+          const source =
+            value && value.type === "static"
+              ? value
+              : {};
+
+          const row = document.createElement("div");
+
+          row.className = "rec-static-fields";
+
+          row.innerHTML = `
+            <div class="input-container">
+              <label>Source</label>
+
+              <input
+                class="rec-static-src"
+                placeholder="internal"
+                value="${escapeHtml(source.src || "internal")}"
+              >
+            </div>
+
+            <div class="input-container">
+              <label>URL</label>
+
+              <input
+                class="rec-static-url"
+                placeholder="https://..."
+                value="${escapeHtml(source.url || "")}"
+              >
+            </div>
+
+            <div class="input-container">
+              <label>Tracking Rec</label>
+
+              <input
+                class="rec-static-tracking"
+                placeholder="tracking_rec"
+                value="${escapeHtml(source.tracking_rec || "")}"
+              >
+            </div>
+          `;
+
+          list.appendChild(row);
+
+          return;
+        }
+
+        // ==========================================
+        // EXPERIMENT
+        // ==========================================
+
+        const source =
+          value && value.type === "experiment" && value.models
+            ? value.models
+            : {};
+
+        models.forEach((model_item) => {
+
+          const saved =
+            source[model_item.name] || {};
+
+          const row =
+            document.createElement("div");
+
+          row.className = "rec-model-row";
+
+          row.dataset.model =
+            model_item.name;
+
+          row.innerHTML = `
+            <div>
+
+              <div class="model-name">
+                ${escapeHtml(model_item.name)}
+              </div>
+
+              <div class="model-meta">
+                URL for ${escapeHtml(model_item.name)}
+              </div>
+
+            </div>
+
+            <input
+              class="rec-model-url"
+              placeholder="https://..."
+              value="${escapeHtml(saved.url || "")}"
+            >
+
+            <div class="model-meta">
+              Source for ${escapeHtml(model_item.name)}
+            </div>
+
+            <input
+              class="rec-model-src"
+              placeholder="internal"
+              value="${escapeHtml(saved.src || "internal")}"
+            >
+          `;
+
+          list.appendChild(row);
+        });
+      }
+      function collectExpData() {
+        const target_data = {};
+        document.querySelectorAll("#experiment_target .target-key").forEach((item, idx) => {
+          const v = document.querySelectorAll("#experiment_target .target-value")[idx];
+          if (item.value.trim()) target_data[item.value.trim()] = v.value.trim();
+        });
+        return {
+          schema_version: 2,
+          id: document.getElementById("experiment_id").value.trim(),
+          name: document.getElementById("experiment_name").value.trim(),
+          version: document.getElementById("experiment_version").value,
+          status: document.getElementById("experiment_status").value,
+          target: target_data,
+          models: currentModels(),
+          events: currentEvents(),
+        };
+      }
+      function findDuplicateExperimentName(exp_data, ignore_item = null) {
+        const normalized_name = String(exp_data.name || "")
+          .trim()
+          .toLowerCase();
+
+        return (
+          experiments.find(
+            (exp_item) =>
+              exp_item !== ignore_item &&
+              String(exp_item.name || "")
+                .trim()
+                .toLowerCase() === normalized_name
+          ) || null
+        );
+      }
+      function findActiveEventConflicts(
+        exp_data,
+        ignore_id = null
+      ) {
+        const conflict_list = [];
+
+        const current_keys = Object.keys(
+          exp_data.events || {}
+        );
+
+        experiments
+          .filter(
+            (exp_item) =>
+              exp_item.status === "active" &&
+              exp_item.id !== ignore_id
+          )
+          .forEach((exp_item) => {
+
+            const active_keys = Object.keys(
+              exp_item.events || {}
+            );
+
+            current_keys.forEach((key) => {
+
+              if (active_keys.includes(key)) {
+
+                conflict_list.push({
+                  key: key,
+                  experiment_id: exp_item.id,
+                  experiment_name: exp_item.name
+                });
+
+              }
+
+            });
+
+          });
+
+        return conflict_list;
+      }
+      function validate(exp_data) {
+        const error_list = [];
+
+        // ==========================================
+        // EXPERIMENT BASIC INFORMATION
+        // ==========================================
+
+        if (!exp_data.id) error_list.push("Experiment ID required");
+        if (/\s/.test(exp_data.id)) error_list.push("Experiment ID cannot contain whitespace");
+        if (experiments.some(x=>x.id===exp_data.id && x.id!==editingId)) error_list.push("Experiment ID must be unique");
+
+        if (!exp_data.name) {
+          error_list.push("Name required");
+        } else {
+          if (exp_data.name.length > 16) {
+            error_list.push("Experiment name must be 16 characters or fewer");
+          }
+
+          const current_experiment =
+            editingId
+              ? experiments.find(
+                  (exp_item) => exp_item.id === editingId
+                )
+              : null;
+
+          const duplicate_experiment =
+            findDuplicateExperimentName(
+              exp_data,
+              current_experiment
+            );
+
+          if (duplicate_experiment) {
+            error_list.push(
+              "Experiment name \"" +
+              exp_data.name +
+              "\" is already used by \"" +
+              duplicate_experiment.name +
+              "\" (" +
+              duplicate_experiment.id +
+              ")"
+            );
+          }
+        }
+
+        DEFAULT_TARGETS.forEach(key=>{if(!String((exp_data.target||{})[key]||"").trim()) error_list.push(key[0].toUpperCase()+key.slice(1)+" is required");});
+        // ==========================================
+        // MODELS
+        // ==========================================
+
+        if (exp_data.models.length < 2) {
+          error_list.push(
+            "At least 2 models required"
+          );
+        }
+
+        const names =
+          exp_data.models.map(
+            (model_item) => model_item.name
+          );
+
+        if (names.some((name) => !name)) {
+          error_list.push(
+            "Model names are required"
+          );
+        }
+
+        if (
+          new Set(names).size !== names.length
+        ) {
+          error_list.push(
+            "Model names must be unique"
+          );
+        }
+
+        const total =
+          exp_data.models.reduce(
+            (result, model_item) =>
+              result +
+              Number(model_item.percentage || 0),
+            0
+          );
+
+        if (exp_data.models.some(model_item=>Number(model_item.percentage)<=0 || !Number.isFinite(Number(model_item.percentage)))) error_list.push("Each variant percentage must be greater than 0%");
+        if (total <= 0) {
+          error_list.push(
+            "Model percentages must be greater than 0% in total"
+          );
+        }
+
+        if (total > 100 + 1e-9) {
+          error_list.push(
+            "Model percentages must not exceed 100%"
+          );
+        }
+
+        // ==========================================
+        // EVENTS
+        // ==========================================
+        
+        const event_keys =
+          Object.keys(exp_data.events);
+
+        if (!event_keys.length) {
+          error_list.push(
+            "At least 1 event required"
+          );
+        }
+
+        if (
+          new Set(event_keys).size !==
+          event_keys.length
+        ) {
+
+          error_list.push(
+            "Event keys must be unique within the experiment"
+          );
+
+        }
+
+        // ==========================================
+        // ACTIVE EVENT KEY UNIQUENESS
+        // ==========================================
+
+        if (exp_data.status === "active") {
+
+          const active_key_conflicts =
+            findActiveEventConflicts(
+              exp_data,
+              editingId
+            );
+
+          active_key_conflicts.forEach(
+            (conflict_item) => {
+
+              error_list.push(
+                "Event key \"" +
+                conflict_item.key +
+                "\" is already used by active experiment \"" +
+                conflict_item.experiment_name +
+                "\" (" +
+                conflict_item.experiment_id +
+                ")"
+              );
+
+            }
+          );
+
+        }
+
+        Object.entries(
+          exp_data.events
+        ).forEach(([key, value]) => {
+
+          if (!key) {
+            error_list.push(
+              "Event key is required"
+            );
+            return;
+          }
+
+          // ========================================
+          // STATIC VALIDATION
+          // ========================================
+
+          if (value.type === "static") {
+
+            if (
+              !String(value.url || "").trim()
+            ) {
+
+              error_list.push(
+                key + ": URL required"
+              );
+            }
+
+            if (
+              !String(
+                value.tracking_rec || ""
+              ).trim()
+            ) {
+
+              error_list.push(
+                key +
+                ": Tracking Rec required"
+              );
+            }
+
+            return;
+          }
+
+          // ========================================
+          // EXPERIMENT VALIDATION
+          // ========================================
+
+          if (value.type === "experiment") {
+
+            if (!value.models) {
+
+              error_list.push(
+                key +
+                ": model configuration required"
+              );
+
+              return;
+            }
+
+            exp_data.models.forEach(
+              (model_item) => {
+
+                const model_config =
+                  value.models[
+                    model_item.name
+                  ];
+
+                if (
+                  !model_config ||
+                  !String(
+                    model_config.url || ""
+                  ).trim()
+                ) {
+
+                  error_list.push(
+                    key +
+                    ": URL required for " +
+                    model_item.name
+                  );
+                }
+
+              }
+            );
+
+            return;
+          }
+
+          // ========================================
+          // UNKNOWN TYPE
+          // ========================================
+
+          error_list.push(
+            key +
+            ": Invalid event type"
+          );
+
+        });
+
+        // ==========================================
+        // DISPLAY VALIDATION RESULT
+        // ==========================================
+
+        document.getElementById("valid").innerHTML =
+          error_list.length
+
+            ? '<span style="color:#b42318">' +
+              error_list.join("<br>") +
+              "</span>"
+
+            : '<span style="color:green">' +
+              "Valid configuration ✓" +
+              "</span>";
+
+        return !error_list.length;
+      }
+      function saveExperiment() {
+        const experiment_data = collectExpData();
+        if (!validate(experiment_data)) return;
+        experiment_data.updated_at = new Date().toISOString();
+        if (editingId) {
+          const old=experiments.find(x=>x.id===editingId);
+          const parts=normalizeVersion(old?.version).split(".").map(Number);
+          experiment_data.version=document.getElementById("version_type").value==="major" ? (parts[0]+1)+".0" : parts[0]+"."+(parts[1]+1);
+        } else experiment_data.version="1.0";
+        if (editingId) {
+          const exp_index = experiments.findIndex((exp_item) => exp_item.id === editingId);
+          if (exp_index < 0) return;
+          // if (experiment_data.status === "active" && experiments[exp_index].status === "active")
+          //   experiment_data.version = experiments[exp_index].version + 1;
+          experiments[exp_index] = experiment_data;
+        } else experiments.push(experiment_data);
+        save();
+        closeExperiment();
+      }
+      function setExperimentStatus(exp_id, status) {
+        const exp_data =
+          experiments.find(
+            (exp_item) => exp_item.id === exp_id
+          );
+
+        if (!exp_data) return;
+
+        if (
+          ["completed", "archived"].includes(exp_data.status) &&
+          status === "active"
+        ) {
+          alert(
+            "This experiment is already " +
+            exp_data.status +
+            ". Duplicate it to create a new experiment."
+          );
+
+          return;
+        }
+
+        // ==========================================
+        // ACTIVE EVENT KEY UNIQUENESS
+        // ==========================================
+
+        if (status === "active") {
+
+          const active_key_conflicts =
+            findActiveEventConflicts(
+              exp_data,
+              exp_data.id
+            );
+
+          if (active_key_conflicts.length) {
+
+            alert(
+              "Cannot activate this experiment.\n\n" +
+              active_key_conflicts
+                .map(
+                  (conflict_item) =>
+                    "Event key \"" +
+                    conflict_item.key +
+                    "\" is already used by active experiment \"" +
+                    conflict_item.experiment_name +
+                    "\" (" +
+                    conflict_item.experiment_id +
+                    ")"
+                )
+                .join("\n")
+            );
+
+            return;
+          }
+        }
+
+        exp_data.status = status;
+
+        save();
+      }
+      function duplicateExperiment(exp_id) {
+        const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
+        if (!exp_data) return;
+        exp_data.id = exp_data.id + "_copy_" + Date.now();
+        exp_data.name = (exp_data.name + " (Copy)").slice(0, 16);
+        exp_data.status = "draft";
+        exp_data.version = 1;
+        experiments.push(exp_data);
+        save();
+        editExperiment(exp_data.id);
+      }
+      function preventWhitespace(input) {
+        input.value = input.value.replace(/\s/g, '');
+      }
+      function download(n, o) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(
+          new Blob([JSON.stringify(o, null, 2)], { type: "application/json" }),
+        );
+        a.download = n;
+        a.click();
+      }
+      function exportManifest() {
+        download("index.json", {
+          schema_version: 3,
+          config_version: Date.now(),
+          generated_at: new Date().toISOString(),
+
+          experiments: experiments
+            .filter((exp_item) => exp_item.status === "active")
+            .map((exp_item) => ({
+              id: exp_item.id,
+              name: exp_item.name,
+              version: exp_item.version,
+              status: exp_item.status,
+
+              // Target metadata is included in the manifest
+              // so the SDK can filter experiments before
+              // downloading the full experiment JSON.
+              target: exp_item.target || {},
+              event_keys: Object.keys(
+                exp_item.events || {}
+              ),
+              config_url:
+                "./experiments/" +
+                exp_item.id +
+                "/v" +
+                exp_item.version +
+                ".json",
+            })),
+        });
+      }
+      async function toFolderName(input) {
+        const data = new TextEncoder().encode(String(input));
+        const hash = await crypto.subtle.digest("SHA-256", data);
+
+        const hex = Array.from(new Uint8Array(hash))
+            .map(byte => byte.toString(16).padStart(2, "0"))
+            .join("");
+
+        return `folder_${hex.slice(0, 20)}`;
+      }
+      async function exportAll() {
+        if (typeof JSZip === "undefined") {
+          alert("JSZip library is not loaded.");
+          return;
+        }
+
+        const zip = new JSZip();
+
+        // Get active experiments and calculate folder names once.
+        const active_experiments = await Promise.all(
+          experiments
+            .filter(
+              (experiment_item) =>
+                experiment_item.status === "active"
+            )
+            .map(async (experiment_item) => ({
+              item: experiment_item,
+              folder_name: await toFolderName(
+                experiment_item.name
+              ),
+            }))
+        );
+
+        /*
+        * Generate index.json.
+        * Only active experiments are included.
+        */
+        const manifest = {
+          schema_version: 3,
+          config_version: Date.now(),
+          generated_at: new Date().toISOString(),
+
+          experiments: active_experiments.map(
+            ({ item, folder_name }) => ({
+              id: item.id,
+              name: item.name,
+              version: item.version,
+              status: item.status,
+
+              target: item.target || {},
+              event_keys: Object.keys(item.events || {}),
+
+              config_url:
+                "./experiments/" +
+                folder_name +
+                "/v" +
+                item.version +
+                ".json",
+            })
+          ),
+        };
+
+        // Add index.json to the root of the ZIP.
+        zip.file(
+          "index.json",
+          JSON.stringify(manifest, null, 2)
+        );
+
+        /*
+        * Add experiment configurations.
+        * Folder names match the manifest exactly.
+        */
+        active_experiments.forEach(
+          ({ item, folder_name }) => {
+            const experiment_path =
+              "experiments/" +
+              folder_name +
+              "/v" +
+              item.version +
+              ".json";
+
+            zip.file(
+              experiment_path,
+              JSON.stringify(item, null, 2)
+            );
+          }
+        );
+
+        // Generate the ZIP file.
+        const zip_blob = await zip.generateAsync({
+          type: "blob",
+        });
+
+        // Download the complete production configuration.
+        const download_link = document.createElement("a");
+
+        download_link.href = URL.createObjectURL(zip_blob);
+        download_link.download = "event-config-production.zip";
+
+        document.body.appendChild(download_link);
+        download_link.click();
+        download_link.remove();
+
+        // Release the temporary object URL.
+        setTimeout(() => {
+          URL.revokeObjectURL(download_link.href);
+        }, 1000);
+      }
+
+      function normalizeVersion(value){const s=String(value||"1");return s.includes(".")?s:(s+".0");}
+      function showHome(){document.getElementById("home_page").classList.add("active");document.getElementById("detail_page").classList.remove("active");render();}
+      function showDetailTab(tab){detailTab=tab;document.getElementById("configuration_view").classList.toggle("hidden",tab!=="configuration");document.getElementById("simulation_view").classList.toggle("hidden",tab!=="simulation");document.getElementById("configuration_tab").classList.toggle("active",tab==="configuration");document.getElementById("simulation_tab").classList.toggle("active",tab==="simulation");document.getElementById("breadcrumb_tab").textContent=tab==="configuration"?"Configuration":"Simulation";if(tab==="simulation")renderSimulationContext();}
+      function openExperiment(id,tab="configuration"){const exp=experiments.find(x=>x.id===id);if(!exp)return;editExperiment(id);document.getElementById("home_page").classList.remove("active");document.getElementById("detail_page").classList.add("active");document.getElementById("detail_title").textContent=exp.name;document.getElementById("breadcrumb_name").textContent=exp.name;document.getElementById("detail_status").className="status "+exp.status;document.getElementById("detail_status").textContent=exp.status[0].toUpperCase()+exp.status.slice(1);document.getElementById("saved_version").textContent="Saved configuration · v"+normalizeVersion(exp.version);document.getElementById("simulation_id").value=exp.id;showDetailTab(tab);}
+      function toggleContextJson(){const area=document.getElementById("context");area.classList.toggle("hidden");document.getElementById("simulation_context_fields").classList.toggle("hidden");}
+      function renderSimulationContext(){const exp=experiments.find(x=>x.id===document.getElementById("simulation_id").value);const target=exp?.target||{};const box=document.getElementById("simulation_context_fields");box.innerHTML=DEFAULT_TARGETS.map(key=>`<div class="input-container"><label>${key[0].toUpperCase()+key.slice(1)} *</label><input class="sim-context" data-key="${key}" value="${escapeHtml(target[key]||"")}" placeholder="${key}"></div>`).join("");const custom=Object.entries(target).filter(([k])=>!DEFAULT_TARGETS.includes(k));document.getElementById("simulation_context_custom").innerHTML=custom.map(([k,v])=>`<div class="input-container" style="margin-top:12px"><label>${escapeHtml(k)}</label><input class="sim-context" data-key="${escapeHtml(k)}" value="${escapeHtml(v)}"></div>`).join("");box.querySelectorAll("input").forEach(i=>i.addEventListener("input",syncSimulationContext));document.querySelectorAll("#simulation_context_custom input").forEach(i=>i.addEventListener("input",syncSimulationContext));syncSimulationContext();}
+      function syncSimulationContext(){const context={};document.querySelectorAll(".sim-context").forEach(i=>context[i.dataset.key]=i.value.trim());document.getElementById("context").value=JSON.stringify(context);}
+      function runSimulationTest(type){document.querySelectorAll(".test-actions .btn").forEach(b=>b.classList.remove("active"));const id={distribution:"run_distribution_btn",inspect:"inspect_btn",consistency:"consistency_btn"}[type];document.getElementById(id).classList.add("active");if(type==="distribution")distribution();if(type==="inspect")inspect();if(type==="consistency")consistency();}
+      function renderSimulationVisual(type,data){const box=document.getElementById("simulation_visual_results");if(type==="distribution"&&data.actual){const entries=Object.entries(data.actual);box.innerHTML=`<div class="result-grid">${entries.map(([name,v])=>`<div><div class="muted">${escapeHtml(name==="__unassigned"?"Unassigned":name)}</div><div class="result-number">${v.count.toLocaleString()} users</div><div class="muted">${v.percentage}% observed</div></div>`).join("")}</div><div class="result-bar">${entries.map(([name,v],i)=>`<span style="width:${v.percentage}%;background:${name==="__unassigned"?'#eee':MODEL_COLORS[i%MODEL_COLORS.length]}"></span>`).join("")}</div><div class="result-foot"><span>Observed allocation</span><span>Configured allocation: ${data.expected.map(x=>x.percentage).join(" / ")}</span></div>`;document.getElementById("result_title").textContent="Distribution results";document.getElementById("result_subtitle").textContent=`Illustrative preview · ${document.getElementById("total_users").value} simulated users`;}else if(type==="inspect"){box.innerHTML=`<div class="aside-card"><div class="muted">Assignment result for user ${escapeHtml(data.userId)}</div><div class="result-number">${escapeHtml(data.assignedModel||"Unassigned")}</div><div class="${data.targetMatches?'success':'error'}">${data.targetMatches?'Context matches audience rules':'Context does not match audience rules'}</div><div class="muted">Bucket ${data.bucket} · ${data.assignmentStatus}</div></div>`;document.getElementById("result_title").textContent="User inspection";document.getElementById("result_subtitle").textContent="Deterministic assignment for the supplied user ID";}else if(type==="consistency"){box.innerHTML=`<div class="aside-card"><div class="result-number">${data.passed?'Consistent':'Inconsistent'}</div><div class="${data.passed?'success':'error'}">${data.passed?'The same request returned the same assignment hash and bucket.':'Assignment results differed between repeated requests.'}</div></div>`;document.getElementById("result_title").textContent="Consistency results";document.getElementById("result_subtitle").textContent="Repeated assignment check";}}
+      function updateAllocationVisual(){const models=currentModels();const total=models.reduce((s,m)=>s+(Number(m.percentage)||0),0);const remaining=Math.max(0,100-total);document.getElementById("model_allocation_bar").innerHTML=models.map((m,i)=>`<span style="width:${Math.max(0,Number(m.percentage)||0)}%;background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></span>`).join("")+`<span style="width:${remaining}%;background:#eee"></span>`;document.getElementById("model_allocation_legend").innerHTML=models.map((m,i)=>`<span><i class="dot" style="background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></i>${escapeHtml(m.name)} ${Number(m.percentage)||0}%</span>`).join("")+`<span><i class="dot" style="background:#eee"></i>Unassigned ${remaining.toFixed(2)}%</span>`;}
+      async function hash(s) {
+        return AnalyticModelSDK._test.sha256(s);
+      }
+      async function distribution() {
+        const exp_data = experiments.find(
+            (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+          ),
+          user_total_number = Number(document.getElementById("total_users").value);
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        if (!Number.isInteger(user_total_number) || user_total_number < 1) { document.getElementById("simulation_output").textContent="Number of users must be at least 1"; return; }
+        if (!exp_data.models || exp_data.models.length < 2) {
+          document.getElementById("simulation_output").textContent = "No valid models";
+          return;
+        }
+        const user_distribution = {};
+        let user_unassigned = 0;
+        exp_data.models.forEach((model_item) => (user_distribution[model_item.name] = 0));
+        for (let i = 1; i <= user_total_number; i++) {
+          const bucket_value = AnalyticModelSDK._test.bucket(
+            await hash(exp_data.id + ":sim_user_" + i),
+          );
+          const model_data = AnalyticModelSDK._test.select(exp_data.models, bucket_value);
+
+          // A null model means this user falls into the unassigned
+          // percentage because the configured model total is below 100%.
+          if (model_data) {
+            user_distribution[model_data.name]++;
+          } else {
+            user_unassigned++;
+          }
+        }
+        user_distribution["__unassigned"] = user_unassigned;
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            expected: [
+              ...exp_data.models.map((model_item) => ({
+                model: model_item.name,
+                percentage: model_item.percentage,
+              })),
+              {
+                model: "__unassigned",
+                percentage: Math.max(0, 100 - exp_data.models.reduce(
+                  (total, model_item) => total + Number(model_item.percentage || 0),
+                  0,
+                )),
+              },
+            ],
+            actual: Object.fromEntries(
+              Object.entries(user_distribution).map((x) => [
+                x[0],
+                { count: x[1], percentage: ((x[1] / user_total_number) * 100).toFixed(2) },
+              ]),
+            ),
+          },
+          null,
+          2,
+        );
+        const result=JSON.parse(document.getElementById("simulation_output").textContent); renderSimulationVisual("distribution",result);
+      }
+      async function inspect() {
+        const exp_data = experiments.find(
+          (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+        );
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        if (!document.getElementById("simulation_user_id").value.trim()) { document.getElementById("simulation_output").textContent="User ID is required"; return; }
+        const hash_value = await hash(exp_data.id + ":" + document.getElementById("simulation_user_id").value),
+          bucket_value = AnalyticModelSDK._test.bucket(hash_value),
+          model_item = AnalyticModelSDK._test.select(exp_data.models, bucket_value);
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            experimentId: exp_data.id,
+            userId: document.getElementById("simulation_user_id").value,
+            hash: hash_value,
+            bucket: bucket_value,
+            assignedModel: model_item ? model_item.name : null,
+            assignmentStatus: model_item ? "assigned" : "unassigned",
+            targetMatches: AnalyticModelSDK._test.targetMatches(
+              exp_data.target,
+              JSON.parse(document.getElementById("context").value),
+            ),
+          },
+          null,
+          2,
+        );
+        renderSimulationVisual("inspect",JSON.parse(document.getElementById("simulation_output").textContent));
+      }
+      async function consistency() {
+        const exp_data = experiments.find(
+          (exp_item) => exp_item.id === document.getElementById("simulation_id").value,
+        );
+        if (!exp_data) {
+          document.getElementById("simulation_output").textContent = "Experiment not found";
+          return;
+        }
+        const consistency_data = [];
+        for (let i = 0; i < 20; i++) {
+          const hash_value = await hash(
+            exp_data.id + ":" + document.getElementById("simulation_user_id").value,
+          );
+          consistency_data.push([hash_value, AnalyticModelSDK._test.bucket(hash_value)]);
+        }
+        document.getElementById("simulation_output").textContent = JSON.stringify(
+          {
+            passed: consistency_data.every((x) => x[0] === consistency_data[0][0] && x[1] === consistency_data[0][1]),
+            sample: consistency_data[0],
+          },
+          null,
+          2,
+        );
+        renderSimulationVisual("consistency",JSON.parse(document.getElementById("simulation_output").textContent));
+      }
+      loadConfiguration();
+    </script>
+  </body>
+</html>
