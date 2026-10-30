@@ -441,10 +441,16 @@
       }
       function bindModelRows() {
         document.querySelectorAll("#model_list_section .model-name").forEach((input) => {
+          input.onfocus = () => {
+            input.dataset.previousModels = JSON.stringify(currentModels());
+          };
+
           input.onchange = () => {
-            const models = currentModels();
-            renameModel(input.dataset.original, input.value, models);
-          }
+            const previousModels = JSON.parse(input.dataset.previousModels || "[]");
+            delete input.dataset.previousModels;
+
+            renameModel(input.dataset.original, input.value, previousModels);
+          };
         });
         document
           .querySelectorAll("#model_list_section .model-percentage")
