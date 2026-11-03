@@ -1,11 +1,13 @@
 {
   "schema_version": 2,
   "id": "recommendation_detikcom_001",
-  "name": "Detikcom Recommendation Model AB Test",
-  "version": 1,
+  "name": "Recommendation",
+  "version": "1.1",
   "status": "active",
   "target": {
-    "portal": "detikcom",
+    "project": "detikcom",
+    "environment": "production",
+    "platform": "wp/detail/search",
     "feature": "recommendation"
   },
   "models": [
@@ -62,5 +64,5 @@
       "tracking_rec": "model"
     }
   },
-  "updated_at": "2026-10-16T03:55:16.507Z"
+  "updated_at": "2026-11-03T07:53:59.709Z"
 }

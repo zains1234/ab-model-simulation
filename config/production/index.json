@@ -1,15 +1,17 @@
 {
   "schema_version": 3,
-  "config_version": 1792124099693,
-  "generated_at": "2026-10-16T04:14:59.693Z",
+  "config_version": 1793692452452,
+  "generated_at": "2026-11-03T07:54:12.452Z",
   "experiments": [
     {
       "id": "recommendation_detikcom_001",
-      "name": "Detikcom Recommendation Model AB Test",
-      "version": 1,
+      "name": "Recommendation",
+      "version": "1.1",
       "status": "active",
       "target": {
-        "portal": "detikcom",
+        "project": "detikcom",
+        "environment": "production",
+        "platform": "wp/detail/search",
         "feature": "recommendation"
       },
       "event_keys": [
@@ -18,7 +20,7 @@
         "beritarekomendasi",
         "artikelrekomendasi"
       ],
-      "config_url": "./experiments/folder_c173b0257c3d4afe2995/v1.json"
+      "config_url": "./experiments/folder_bc92e0e35c9a7ba1b3ec/v1.1.json"
     }
   ]
 }
