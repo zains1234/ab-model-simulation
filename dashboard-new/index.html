@@ -6,7 +6,12 @@
     <title>ABTEST — Experiment Platform</title>
 <style>
 :root{--ink:#202020;--muted:#858585;--line:#e9e9e9;--soft:#f7f7f7;--green:#08a64b;--dark:#1d1d1d;--radius:5px}
-*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}header{height:64px;border-bottom:1px solid #f1f1f1;display:flex;align-items:center;padding:0 40px;gap:14px;background:#fff;position:sticky;top:0;z-index:10}.brand-mark{width:28px;height:28px;border-radius:6px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-size:15px}.brand{font-weight:700;letter-spacing:-.3px}.brand-sub{color:#aaa;margin-left:28px;font-size:12px}.header-right{margin-left:auto;display:flex;gap:30px;align-items:center;font-size:12px}.header-right a{color:inherit;text-decoration:none}main{max-width:1440px;margin:0 auto;padding:38px 40px 60px}.page{display:none}.page.active{display:block}.page-heading{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}.page-heading h1{font-size:24px;letter-spacing:-.6px;margin:0 0 2px;font-weight:650}.sub{color:#999;font-size:12px}.toolbar,.inline{display:flex;align-items:center;gap:10px}.btn{border:1px solid #dedede;border-radius:5px;padding:10px 14px;background:#fff;color:#222;font-size:12px;font-weight:550;cursor:pointer;white-space:nowrap}.btn:hover{background:#f8f8f8}.btn.primary{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.btn.primary:hover{background:#333}.btn.small{padding:7px 10px}.btn.link{border:0;padding:6px 4px}.btn:disabled{opacity:.4;cursor:not-allowed}.btn.export-manifest { display: flex; align-items: center; width: 100px; justify-content: space-around; }.tabs{display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--line);margin-bottom:22px;min-height:42px}.tab{border:0;background:none;padding:0 0 13px;color:#999;font-size:12px;cursor:pointer;position:relative}.tab.active{color:#171717;font-weight:600}.tab.active:after{content:"";height:2px;background:#222;position:absolute;bottom:-1px;left:0;right:0}.tab-count{color:#aaa;margin-left:4px}.home-filters{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:18px 0}.search{width:min(460px,100%);position:relative}.search input{padding-left:34px}.search:before{content:"⌕";position:absolute;left:12px;top:7px;color:#777;font-size:19px}.filters{display:flex;gap:12px}.filters select{width:auto;min-width:130px}.field,input,select,textarea{font:inherit;color:#222}input,select,textarea{width:100%;border:1px solid #e3e3e3;border-radius:4px;padding:10px 11px;background:#fff;font-size:12px;outline:none}input:focus,select:focus,textarea:focus{border-color:#999}.input-container{display:flex;flex-direction:column;gap:7px;min-width:0}label{font-size:12px;color:#555}.required{color:#222}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:720px}th{text-align:left;color:#999;font-size:10px;font-weight:500;padding:12px 10px;border-bottom:1px solid var(--line)}td{font-size:12px;padding:15px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}tbody tr{cursor:pointer}tbody tr:hover{background:#fafafa}tbody tr.selected{background:#fafafa}td .muted{margin-top:3px}.muted{color:#999;font-size:11px}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:#aaa}.status.active{color:var(--green)}.status.active:before{background:var(--green)}.status.paused{color:#b98220}.status.paused:before{background:#d8a33d}.status.completed{color:#777}.status.draft{color:#999}.status.archived{color:#999}.row-actions{display:flex;align-items:center;gap:4px}.action-menu{position:fixed;z-index:1000;width:190px;padding:8px;background:#fff;border:1px solid #e5e5e5;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.12)}.action-menu.hidden{display:none}.action-menu-label{font-size:10px;color:#999;padding:5px 8px}.action-menu select{width:100%;margin-bottom:6px}.action-menu-divider{border-top:1px solid #eee;margin:5px 0}.row-actions .btn{padding:5px 8px;min-width:32px}.action-menu.hidden{display:none}.action-menu-label{font-size:10px;color:#999;padding:5px 8px}.action-menu select{width:100%;margin-bottom:6px}.action-menu button{width:100%;text-align:left;border:0;background:0 0;padding:8px;font-size:12px;cursor:pointer;border-radius:4px}.action-menu button:hover{background:#f5f5f5}.action-menu-divider{border-top:1px solid #eee;margin:5px 0}.row-actions .btn{padding:5px 8px}.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;color:#999;font-size:11px}.pagination .inline{gap:18px}.home-bottom{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:52px;margin-top:42px}.current-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.current-title h2{font-size:16px;margin:0;font-weight:600}.current-list{display:flex;flex-direction:column;gap:14px;margin-top:14px;max-height:260px;overflow:auto;padding-right:8px}.config-item{border:1px solid var(--line);border-radius:5px;padding:15px}.config-item.selected{border-color:#aaa}.config-item-head{display:flex;justify-content:space-between;gap:12px}.config-item h3{font-size:13px;margin:0 0 3px}.audience-line{font-size:11px;color:#777;margin-top:14px}.config-meta{font-size:11px;color:#888;margin-top:8px}.allocation{height:7px;border-radius:2px;display:flex;overflow:hidden;background:#eee;margin:10px 0 7px}.allocation span{height:100%;display:block}.legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10px;color:#777}.legend-items{display:flex;gap:14px;flex-wrap:wrap}.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}.config-actions{display:flex;gap:18px;margin-top:13px}.config-actions button{font-size:11px}.explain h3{font-size:14px;margin:0 0 12px}.explain p{color:#999;font-size:11px;line-height:1.7}.checks{list-style:none;padding:0;margin:25px 0 12px}.checks li{font-size:11px;margin:10px 0;color:#555}.checks li:before{content:"✓";color:var(--green);margin-right:9px}.workspace-foot{display:flex;justify-content:space-between;margin-top:42px;padding-top:15px;border-top:1px solid #f2f2f2;color:#bbb;font-size:10px}.breadcrumb{display:flex;gap:12px;color:#999;font-size:11px;margin:0 0 24px}.breadcrumb a{color:inherit;text-decoration:none;cursor:pointer}.detail-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.detail-heading h1{font-size:24px;margin:0 12px 2px 0;display:inline-block}.saved{font-size:11px;color:#777}.detail-tabs{margin-bottom:28px}.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.section{padding:0 0 28px;margin-bottom:25px;border-bottom:1px solid #f0f0f0}.section-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}.section h2{font-size:15px;margin:0 0 4px;font-weight:650}.section-desc{font-size:11px;color:#999}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.form-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.target-row{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.target-row.default .target-key{background:#fafafa;color:#666}.model-row{display:grid;grid-template-columns:minmax(130px,1fr) 150px minmax(120px,1fr) auto;gap:12px;align-items:center;margin:10px 0}.model-row input{min-width:0}.model-meta{font-size:11px;color:#999}.total{font-size:11px;color:#777;margin-top:13px}.allocation.large{height:10px;margin:16px 0 10px}.event-card{border:1px solid var(--line);border-radius:5px;padding:15px;margin:12px 0}.event-card .section-title{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.rec-model-row{display:grid;grid-template-columns:130px 1fr 110px 1fr;gap:10px;align-items:center;margin:10px 0}.rec-static-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.detail-aside{padding-top:4px}.aside-card{border:1px solid #eee;padding:16px;border-radius:5px;margin-bottom:14px}.aside-card h3{font-size:13px;margin:0 0 12px}.aside-card p{font-size:11px;color:#999;line-height:1.7}.aside-list{padding-left:16px;color:#777;font-size:11px;line-height:2}.test-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.test-grid .section{border:0}.context-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px;margin-top:14px}.context-status{color:var(--green);font-size:11px;margin-top:18px}.test-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}.test-actions .btn.active{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.results{border-top:1px solid #eee;padding-top:24px;margin-top:20px}.results-head{display:flex;justify-content:space-between;align-items:center}.results h2{font-size:15px;margin:0}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.result-number{font-size:23px;font-weight:650;margin:4px 0}.result-bar{display:flex;height:14px;gap:4px;margin:16px 0}.result-bar span{border-radius:3px}.result-foot{display:flex;justify-content:space-between;color:#999;font-size:10px}.raw-response{margin-top:25px;border-top:1px solid #eee;padding-top:14px}.raw-response summary{cursor:pointer;color:#777;font-size:11px}pre{background:#f7f7f7;color:#333;border:1px solid #eee;border-radius:4px;padding:14px;overflow:auto;font-size:11px;white-space:pre-wrap;word-break:break-word}.json-editor textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;background:#fafafa}.hidden{display:none!important}.error{color:#b42318;font-size:11px;margin:12px 0}.success{color:var(--green);font-size:11px;margin:12px 0}.empty{padding:28px;text-align:center;color:#aaa;font-size:12px}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}header{height:64px;border-bottom:1px solid #f1f1f1;display:flex;align-items:center;padding:0 40px;gap:14px;background:#fff;position:sticky;top:0;z-index:10}.brand-mark{width:28px;height:28px;border-radius:6px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-size:15px}.brand{font-weight:700;letter-spacing:-.3px}.brand-sub{color:#aaa;margin-left:28px;font-size:12px}.header-right{margin-left:auto;display:flex;gap:30px;align-items:center;font-size:12px}.header-right a{color:inherit;text-decoration:none}main{max-width:1440px;margin:0 auto;padding:38px 40px 60px}.page{display:none}.page.active{display:block}.page-heading{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px}.page-heading h1{font-size:24px;letter-spacing:-.6px;margin:0 0 2px;font-weight:650}.sub{color:#3a3a3a;font-size:12px}.toolbar,.inline{display:flex;align-items:center;gap:10px}.btn{border:1px solid #dedede;border-radius:5px;padding:10px 14px;background:#fff;color:#222;font-size:12px;font-weight:550;cursor:pointer;white-space:nowrap}.btn:hover{background:#f8f8f8}.btn.primary{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.btn.primary:hover{background:#333}.btn.small{padding:7px 10px}.btn.link{border:0;padding:6px 4px}.btn:disabled{opacity:.4;cursor:not-allowed}.btn.export-manifest { display: flex; align-items: center; width: 100px; justify-content: space-around; }.tabs{display:flex;align-items:center;gap:26px;border-bottom:1px solid var(--line);margin-bottom:22px;min-height:42px}.tab{border:0;background:none;padding:0 0 13px;color:#3a3a3a;font-size:12px;cursor:pointer;position:relative}.tab.active{color:#171717;font-weight:600}.tab.active:after{content:"";height:2px;background:#222;position:absolute;bottom:-1px;left:0;right:0}.tab-count{color:#aaa;margin-left:4px}.home-filters{display:flex;justify-content:space-between;gap:14px;align-items:center;margin:18px 0}.search{width:min(460px,100%);position:relative}.search input{padding-left:34px}.search:before{content:"⌕";position:absolute;left:12px;top:7px;color:#777;font-size:19px}.filters{display:flex;gap:12px}.filters select{width:auto;min-width:130px}.field,input,select,textarea{font:inherit;color:#222}input,select,textarea{width:100%;border:1px solid #e3e3e3;border-radius:4px;padding:10px 11px;background:#fff;font-size:12px;outline:none}input:focus,select:focus,textarea:focus{border-color:#3a3a3a}.input-container{display:flex;flex-direction:column;gap:7px;min-width:0}label{font-size:12px;color:#555}.required{color:#222}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:720px}th{text-align:left;color:#3a3a3a;font-size:10px;font-weight:500;padding:12px 10px;border-bottom:1px solid var(--line)}td{font-size:12px;padding:15px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}tbody tr{cursor:pointer}tbody tr:hover{background:#fafafa}tbody tr.selected{background:#fafafa}td .muted{margin-top:3px}.muted{color:#3a3a3a;font-size:11px}.status{display:inline-flex;align-items:center;gap:6px;font-size:11px}.status:before{content:"";width:6px;height:6px;border-radius:50%;background:#aaa}.status.active{color:var(--green)}.status.active:before{background:var(--green)}.status.paused{color:#b98220}.status.paused:before{background:#d8a33d}.status.completed{color:#777}.status.draft{color:#3a3a3a}.status.archived{color:#3a3a3a}.row-actions{display:flex;align-items:center;gap:8px;min-width:0}
+.row-actions .action-icon{width:40px;height:38px;min-width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid #dedede;border-radius:6px;background:#fff;color:#444}
+.row-actions .action-icon:hover{background:#f5f5f5;border-color:#c9c9c9;color:#111}
+.row-actions .action-icon svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.row-actions .action-status{width:116px;min-width:116px;height:38px;padding:0 10px;border:1px solid #dedede;border-radius:6px;background:#fff;font-size:12px;cursor:pointer}
+.row-actions .action-status:focus{border-color:#555;outline:none}.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;color:#3a3a3a;font-size:11px}.pagination .inline{gap:18px}.home-bottom{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,.85fr);gap:52px;margin-top:42px}.current-title{display:flex;align-items:center;justify-content:space-between;gap:10px}.current-title h2{font-size:16px;margin:0;font-weight:600}.current-list{display:flex;flex-direction:column;gap:14px;margin-top:14px;max-height:260px;overflow:auto;padding-right:8px}.config-item{border:1px solid var(--line);border-radius:5px;padding:15px}.config-item.selected{border-color:#aaa}.config-item-head{display:flex;justify-content:space-between;gap:12px}.config-item h3{font-size:13px;margin:0 0 3px}.audience-line{font-size:11px;color:#777;margin-top:14px}.config-meta{font-size:11px;color:#888;margin-top:8px}.allocation{height:7px;border-radius:2px;display:flex;overflow:hidden;background:#eee;margin:10px 0 7px}.allocation span{height:100%;display:block}.legend{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:10px;color:#777}.legend-items{display:flex;gap:14px;flex-wrap:wrap}.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:5px}.config-actions{display:flex;gap:18px;margin-top:13px}.config-actions button{font-size:11px}.explain h3{font-size:14px;margin:0 0 12px}.explain p{color:#3a3a3a;font-size:11px;line-height:1.7}.checks{list-style:none;padding:0;margin:25px 0 12px}.checks li{font-size:11px;margin:10px 0;color:#555}.checks li:before{content:"✓";color:var(--green);margin-right:9px}.workspace-foot{display:flex;justify-content:space-between;margin-top:42px;padding-top:15px;border-top:1px solid #f2f2f2;color:#bbb;font-size:10px}.breadcrumb{display:flex;gap:12px;color:#3a3a3a;font-size:11px;margin:0 0 24px}.breadcrumb a{color:inherit;text-decoration:none;cursor:pointer}.detail-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}.detail-heading h1{font-size:24px;margin:0 12px 2px 0;display:inline-block}.saved{font-size:11px;color:#777}.detail-tabs{margin-bottom:28px}.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.section{padding:0 0 28px;margin-bottom:25px;border-bottom:1px solid #f0f0f0}.section-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}.section h2{font-size:15px;margin:0 0 4px;font-weight:650}.section-desc{font-size:11px;color:#3a3a3a}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}.form-grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.target-row{display:grid;grid-template-columns:1fr 1.3fr auto;gap:10px;align-items:end;margin:10px 0}.target-row.default .target-key{background:#fafafa;color:#666}.model-row{display:grid;grid-template-columns:minmax(130px,1fr) 150px minmax(120px,1fr) auto;gap:12px;align-items:center;margin:10px 0}.model-row input{min-width:0}.model-meta{font-size:11px;color:#3a3a3a}.total{font-size:11px;color:#777;margin-top:13px}.allocation.large{height:10px;margin:16px 0 10px}.event-card{border:1px solid var(--line);border-radius:5px;padding:15px;margin:12px 0}.event-card .section-title{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}.rec-model-row{display:grid;grid-template-columns:130px 1fr 110px 1fr;gap:10px;align-items:center;margin:10px 0}.rec-static-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.detail-aside{padding-top:4px}.aside-card{border:1px solid #eee;padding:16px;border-radius:5px;margin-bottom:14px}.aside-card h3{font-size:13px;margin:0 0 12px}.aside-card p{font-size:11px;color:#3a3a3a;line-height:1.7}.aside-list{padding-left:16px;color:#777;font-size:11px;line-height:2}.test-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.test-grid .section{border:0}.context-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 22px;margin-top:14px}.context-status{color:var(--green);font-size:11px;margin-top:18px}.test-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}.test-actions .btn.active{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.results{border-top:1px solid #eee;padding-top:24px;margin-top:20px}.results-head{display:flex;justify-content:space-between;align-items:center}.results h2{font-size:15px;margin:0}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.result-number{font-size:23px;font-weight:650;margin:4px 0}.result-bar{display:flex;height:14px;gap:4px;margin:16px 0}.result-bar span{border-radius:3px}.result-foot{display:flex;justify-content:space-between;color:#3a3a3a;font-size:10px}.raw-response{margin-top:25px;border-top:1px solid #eee;padding-top:14px}.raw-response summary{cursor:pointer;color:#777;font-size:11px}pre{background:#f7f7f7;color:#333;border:1px solid #eee;border-radius:4px;padding:14px;overflow:auto;font-size:11px;white-space:pre-wrap;word-break:break-word}.json-editor textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;background:#fafafa}.hidden{display:none!important}.error{color:#b42318;font-size:11px;margin:12px 0}.success{color:var(--green);font-size:11px;margin:12px 0}.empty{padding:28px;text-align:center;color:#aaa;font-size:12px}
 @media(max-width:900px){main{padding:28px 22px}.detail-layout,.test-grid{grid-template-columns:1fr;gap:20px}.detail-aside{display:grid;grid-template-columns:1fr 1fr;gap:12px}.home-bottom{grid-template-columns:1fr;gap:28px}.form-grid.four{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){header{padding:0 16px}.brand-sub{display:none}.header-right{gap:12px}main{padding:22px 15px}.page-heading,.detail-heading{gap:16px;align-items:flex-start;flex-direction:column}.toolbar{width:100%}.tabs{gap:16px;overflow:auto}.home-filters{align-items:stretch;flex-direction:column}.filters{width:100%}.filters select{flex:1;min-width:0}.form-grid,.form-grid.four,.context-grid,.result-grid{grid-template-columns:1fr}.target-row{grid-template-columns:1fr 1fr auto}.model-row{grid-template-columns:1fr 100px auto}.model-row .model-meta{grid-column:1/-1}.rec-model-row,.rec-static-fields{grid-template-columns:1fr}.detail-aside{display:block}.config-actions{flex-wrap:wrap}}
 </style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -18,7 +23,7 @@
  <div class="page-heading"><div><h1>Experiments</h1><div class="sub">Test features, flows, content, and models across projects.</div></div><div class="toolbar"><button class="btn export-manifest" onclick="exportManifest()" title="Export"> <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/> <polyline points="7 10 12 15 17 10"/> <line x1="12" y1="15" x2="12" y2="3"/> </svg> Export</button><button class="btn primary" onclick="newExperiment()">＋ &nbsp;New Experiment</button></div></div>
  <div class="tabs" id="home_status_tabs"><button class="tab active" data-status="all" onclick="setHomeStatus('all')">All experiments <span class="tab-count" id="count_all">0</span></button><button class="tab" data-status="active" onclick="setHomeStatus('active')">Active <span class="tab-count" id="count_active">0</span></button><button class="tab" data-status="paused" onclick="setHomeStatus('paused')">Paused <span class="tab-count" id="count_paused">0</span></button><button class="tab" data-status="draft" onclick="setHomeStatus('draft')">Draft <span class="tab-count" id="count_draft">0</span></button><button class="tab" data-status="completed" onclick="setHomeStatus('completed')">Completed <span class="tab-count" id="count_completed">0</span></button></div>
  <div class="home-filters"><div class="search"><input id="search_exp" placeholder="Search by experiment name or ID" /></div><div class="filters"><select id="project_filter" onchange="render()"><option value="">All projects</option></select><select id="archive_filter" onchange="render()"><option value="">Archived</option><option value="show">Show archived</option><option value="hide">Hide archived</option></select></div></div>
- <div class="table-wrap"><table><thead><tr><th>Experiment</th><th>Status</th><th>Audience</th><th>Version</th><th>Actions</th></tr></thead><tbody id="experiment_rows"></tbody></table></div>
+ <div class="table-wrap"><table><thead><tr><th>Experiment</th><th>Status</th><th>Audience</th><th>Version</th><th style="min-width:230px">Actions</th></tr></thead><tbody id="experiment_rows"></tbody></table></div>
  <div class="pagination"><span id="pagination_info">Showing 0 experiments</span><div class="inline"><button class="btn link" onclick="changePage(-1)">Previous</button><button class="btn link" onclick="changePage(1)">Next</button></div></div>
  <div class="home-bottom"><section><div class="current-title"><div><h2>Current configuration</h2><div class="muted" id="current_config_sub">All experiments</div></div></div><div id="current_configuration_list" class="current-list"></div></section><aside class="explain"><h3>ⓘ &nbsp;How assignment works</h3><p>Users keep the same variant while their ID and configuration stay the same.</p><ul class="checks"><li>All audience rules must match</li><li>Variant allocation must total 100%</li><li>Each key needs a value per variant</li></ul><p>Test a configuration before you activate it.</p></aside></div>
  <div class="workspace-foot"><span>Configuration workspace</span><span>No performance results connected</span></div>
@@ -183,7 +188,32 @@
         const visible=filtered.slice((currentPage-1)*pageSize,currentPage*pageSize);
         document.getElementById("experiment_rows").innerHTML=visible.map(exp=>{
           const target=exp.target||{}; const audience=[target.project,target.environment].filter(Boolean).join(" / "); const detail=[target.platform,target.feature].filter(Boolean).join(" · ");
-          return `<tr data-id="${escapeHtml(exp.id)}" class="${selectedPreviewId===exp.id?'selected':''}" onclick="selectPreview('${escapeHtml(exp.id)}')"><td><b>${escapeHtml(exp.name)}</b><div class="muted">${escapeHtml(exp.id)}</div></td><td><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status[0].toUpperCase()+exp.status.slice(1))}</span></td><td>${escapeHtml(audience||"—")}<div class="muted">${escapeHtml(detail)}</div></td><td>v${escapeHtml(exp.version||"1.0")}</td><td> <div class="row-actions"> <!-- Open configuration --> <button class="btn" title="Open configuration" onclick="event.stopPropagation(); openExperiment('${escapeHtml(exp.id)}','configuration')" > → </button> <!-- Duplicate experiment --> <button class="btn" title="Duplicate experiment" onclick="event.stopPropagation(); duplicateExperiment('${escapeHtml(exp.id)}')" > ⧉ </button> <!-- More actions --> <button class="btn" title="More actions" onclick="toggleExperimentMenu(event, '${escapeHtml(exp.id)}')" > ··· </button> </div> </td></tr>`;
+          return `<tr data-id="${escapeHtml(exp.id)}" class="${selectedPreviewId===exp.id?'selected':''}" onclick="selectPreview('${escapeHtml(exp.id)}')"><td><b>${escapeHtml(exp.name)}</b><div class="muted">${escapeHtml(exp.id)}</div></td><td><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status[0].toUpperCase()+exp.status.slice(1))}</span></td><td>${escapeHtml(audience||"—")}<div class="muted">${escapeHtml(detail)}</div></td><td>v${escapeHtml(exp.version||"1.0")}</td><td> <div class="row-actions">
+            <button class="btn action-icon" type="button" title="Open configuration" aria-label="Open configuration"
+              onclick="event.stopPropagation(); openExperiment('${escapeHtml(exp.id)}','configuration')">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h9M17 7h3M4 17h3M11 17h9"/>
+                <circle cx="15" cy="7" r="2"/>
+                <circle cx="9" cy="17" r="2"/>
+              </svg>
+            </button>
+            <button class="btn action-icon" type="button" title="Duplicate experiment" aria-label="Duplicate experiment"
+              onclick="event.stopPropagation(); duplicateExperiment('${escapeHtml(exp.id)}')">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="8" y="8" width="12" height="12" rx="2"/>
+                <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
+              </svg>
+            </button>
+            <select class="action-status" aria-label="Change experiment status"
+              onclick="event.stopPropagation()"
+              onchange="event.stopPropagation(); setExperimentStatus('${escapeHtml(exp.id)}', this.value)">
+              <option value="draft" ${exp.status === "draft" ? "selected" : ""}>Draft</option>
+              <option value="active" ${exp.status === "active" ? "selected" : ""}>Active</option>
+              <option value="paused" ${exp.status === "paused" ? "selected" : ""}>Paused</option>
+              <option value="completed" ${exp.status === "completed" ? "selected" : ""}>Completed</option>
+              <option value="archived" ${exp.status === "archived" ? "selected" : ""}>Archived</option>
+            </select>
+          </div> </td></tr>`;
         }).join("") || '<tr><td colspan="5" class="empty">No experiments found</td></tr>';
         document.getElementById("pagination_info").textContent=filtered.length?`Showing ${(currentPage-1)*pageSize+1}–${Math.min(currentPage*pageSize,filtered.length)} of ${filtered.length} experiments`:"Showing 0 experiments";
         renderCurrentConfigurations(filtered);
@@ -1196,114 +1226,7 @@
 
         exp_data.status = status;
 
-        closeActionMenu();
         save();
-      }
-      let openActionMenuId = null;
-
-      function closeActionMenu() {
-        const menu = document.getElementById("experiment_action_dropdown");
-
-        if (menu) {
-          menu.remove();
-        }
-
-        openActionMenuId = null;
-      }
-
-      function toggleExperimentMenu(event, exp_id) {
-        event.stopPropagation();
-
-        // Toggle the currently opened menu
-        if (openActionMenuId === exp_id) {
-          closeActionMenu();
-          return;
-        }
-
-        // Close any previously opened menu
-        closeActionMenu();
-
-        const exp = experiments.find(
-          (exp_item) => exp_item.id === exp_id
-        );
-
-        if (!exp) return;
-
-        const button = event.currentTarget;
-        const rect = button.getBoundingClientRect();
-
-        // Create dropdown outside the table
-        const menu = document.createElement("div");
-
-        menu.id = "experiment_action_dropdown";
-        menu.className = "action-menu";
-
-        menu.innerHTML = `
-          <div class="action-menu-label">
-            CHANGE STATUS
-          </div>
-
-          <select aria-label="Change experiment status">
-            <option value="draft" ${exp.status === "draft" ? "selected" : ""}>
-              Draft
-            </option>
-
-            <option value="active" ${exp.status === "active" ? "selected" : ""}>
-              Active
-            </option>
-
-            <option value="paused" ${exp.status === "paused" ? "selected" : ""}>
-              Paused
-            </option>
-
-            <option value="completed" ${exp.status === "completed" ? "selected" : ""}>
-              Completed
-            </option>
-
-            <option value="archived" ${exp.status === "archived" ? "selected" : ""}>
-              Archived
-            </option>
-          </select>
-        `;
-
-        // Prevent clicks inside the menu from closing it
-        menu.addEventListener("click", (e) => {
-          e.stopPropagation();
-        });
-
-        // Handle status changes
-        menu.querySelector("select").addEventListener("change", function () {
-          setExperimentStatus(exp_id, this.value);
-        });
-
-        document.body.appendChild(menu);
-
-        openActionMenuId = exp_id;
-
-        // Calculate dropdown position
-        const menuRect = menu.getBoundingClientRect();
-
-        let top = rect.bottom + 6;
-        let left = rect.right - menuRect.width;
-
-        // Open above the button if there is insufficient space below
-        if (top + menuRect.height > window.innerHeight - 10) {
-          top = rect.top - menuRect.height - 6;
-        }
-
-        // Keep dropdown inside the viewport
-        left = Math.max(
-          10,
-          Math.min(left, window.innerWidth - menuRect.width - 10)
-        );
-
-        top = Math.max(
-          10,
-          Math.min(top, window.innerHeight - menuRect.height - 10)
-        );
-
-        menu.style.top = top + "px";
-        menu.style.left = left + "px";
       }
       function duplicateExperiment(exp_id) {
         const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
@@ -1594,14 +1517,6 @@
         renderSimulationVisual("consistency",JSON.parse(document.getElementById("simulation_output").textContent));
       }
       // Close dropdown when clicking outside
-      document.addEventListener("click", closeActionMenu);
-
-      // Close dropdown when scrolling
-      document.addEventListener("scroll", closeActionMenu, true);
-
-      // Close dropdown when viewport changes
-      window.addEventListener("resize", closeActionMenu);
-
       loadConfiguration();
     </script>
   </body>
