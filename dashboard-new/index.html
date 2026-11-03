@@ -39,6 +39,18 @@
 .variant-fields-grid input{min-width:0}
 .detail-aside{padding-top:4px}.aside-card{border:1px solid #eee;padding:16px;border-radius:5px;margin-bottom:14px}.aside-card h3{font-size:13px;margin:0 0 12px}.aside-card p{font-size:11px;color:#3a3a3a;line-height:1.7}.aside-list{padding-left:16px;color:#777;font-size:11px;line-height:2}.test-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:55px}.test-grid .section{border:0}.context-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;margin-top:16px;align-items:start}.context-grid .input-container{gap:9px}.context-custom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;margin-top:18px}.context-custom-grid .input-container{min-width:0;gap:9px}.context-custom-row{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) 32px;gap:8px;align-items:end}.context-custom-row input{min-width:0}.context-custom-row .context-remove{height:36px;width:32px;padding:0}.context-json-editor{margin-top:16px}.context-json-editor textarea{width:100%;min-height:190px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;background:#fafafa}.test-actions .btn{min-height:42px;padding:10px 15px;gap:10px}.test-actions .btn svg{width:22px;height:22px;min-width:22px;flex:0 0 22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.context-status{color:var(--green);font-size:11px;margin-top:18px}.test-actions{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}.test-actions .btn.active{background:#1d1d1d;color:#fff;border-color:#1d1d1d}.test-actions .btn:not(.active){background:#fff;color:#222;border-color:#dedede}.results{border-top:1px solid #eee;padding-top:24px;margin-top:20px}.results-head{display:flex;justify-content:space-between;align-items:center}.results h2{font-size:15px;margin:0}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.result-number{font-size:23px;font-weight:650;margin:4px 0}.result-bar{display:flex;height:14px;gap:4px;margin:16px 0}.result-bar span{border-radius:3px;display:block;flex:0 0 auto;min-width:0}.result-foot{display:flex;justify-content:space-between;color:#3a3a3a;font-size:10px}.raw-response{margin-top:25px;border-top:1px solid #eee;padding-top:14px}.raw-response summary{cursor:pointer;color:#777;font-size:11px}pre{background:#f7f7f7;color:#333;border:1px solid #eee;border-radius:4px;padding:14px;overflow:auto;font-size:11px;white-space:pre-wrap;word-break:break-word}.json-editor textarea{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;background:#fafafa}.hidden{display:none!important}.error{color:#b42318;font-size:11px;margin:12px 0}.success{color:var(--green);font-size:11px;margin:12px 0}.empty{padding:28px;text-align:center;color:#aaa;font-size:12px}
 @media(max-width:900px){main{padding:28px 22px}.detail-layout,.test-grid{grid-template-columns:1fr;gap:20px}.detail-aside{display:grid;grid-template-columns:1fr 1fr;gap:12px}.home-bottom{grid-template-columns:1fr;gap:28px}.form-grid.four{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){header{padding:0 16px}.brand-sub{display:none}.header-right{gap:12px}main{padding:22px 15px}.page-heading,.detail-heading{gap:16px;align-items:flex-start;flex-direction:column}.toolbar{width:100%}.tabs{gap:16px;overflow:auto}.home-filters{align-items:stretch;flex-direction:column}.filters{width:100%}.filters select{flex:1;min-width:0}.form-grid,.form-grid.four,.context-grid,.context-custom-grid,.result-grid{grid-template-columns:1fr}.target-row{grid-template-columns:1fr 1fr auto}.model-row{grid-template-columns:1fr 100px auto}.model-row .model-meta{grid-column:1/-1}.variant-fields-grid,.rec-model-row,.rec-static-fields{grid-template-columns:1fr}.event-card-head{align-items:stretch;flex-direction:column}.event-card-controls{flex-direction:column;align-items:stretch}.event-card-controls .event-type{width:100%}.variant-config-head{align-items:flex-start;flex-direction:column}.detail-aside{display:block}.config-actions{flex-wrap:wrap}}
+
+.validation-alert{border:1px solid #f0c7c4;background:#fff8f7;border-radius:7px;padding:14px 16px;margin:0 0 16px;color:#5f2420}
+.validation-alert.hidden{display:none}
+.validation-alert.success{border-color:#b9dfc8;background:#f5fbf7;color:#17643a}
+.validation-alert-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.validation-alert-title{font-size:13px;font-weight:650}
+.validation-alert-count{font-size:11px;border-radius:20px;padding:2px 8px;background:#f5dedb;color:#8f3029}
+.validation-alert.success .validation-alert-count{background:#dff1e5;color:#17643a}
+.validation-alert-close{margin-left:auto;border:0;background:transparent;color:inherit;font-size:20px;line-height:1;cursor:pointer;padding:0 2px}
+.validation-alert-list{margin:0;padding-left:20px;max-height:180px;overflow-y:auto;font-size:12px;line-height:1.65}
+.validation-alert-list li{padding:1px 0}
+
 </style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   </head>
@@ -63,7 +75,14 @@
   <section class="section"><div class="section-head"><div><h2>Audience targeting</h2><div class="section-desc">All four default audience rules are required. Add custom dimensions when needed.</div></div><button class="btn small" type="button" onclick="addExpTarget()">＋ Add target</button></div><div id="experiment_target"></div></section>
   <section class="section"><div class="section-head"><div><h2>Variants model</h2><div class="section-desc">Allocate traffic across variants. Any remaining percentage is unassigned.</div></div><button class="btn small" type="button" onclick="addModel()">＋ Add variant</button></div><div id="model_list_section"></div><div id="model_total" class="total"></div><div id="model_allocation_bar" class="allocation large"></div><div id="model_allocation_legend" class="legend"></div></section>
   <section class="section"><div class="section-head"><div><h2>Variant configuration</h2><div class="section-desc">Define the event keys and the configuration used by each variant.</div></div><div class="inline"><button id="variant_json_toggle" class="btn small" type="button" onclick="toggleVariantJson()">Edit as JSON</button><button id="variant_add_event" class="btn small" type="button" onclick="addRec()">＋ Add event</button></div></div><div id="recomendation_list_section"></div><div id="variant_json_editor" class="json-editor hidden"><div class="muted" style="margin:0 0 8px">Edit the event configuration object. Event keys are object keys; each value must use type "experiment" or "static".</div><textarea id="variant_json_text" rows="16" spellcheck="false" aria-label="Variant configuration JSON"></textarea><div id="variant_json_error" class="error"></div><div class="toolbar" style="margin-top:10px"><button class="btn primary" type="button" onclick="applyVariantJson()">Apply JSON</button><button class="btn" type="button" onclick="cancelVariantJson()">Cancel</button></div></div></section>
-  <div id="valid"></div><div class="toolbar"><button class="btn primary" onclick="saveExperiment()">Save configuration</button><button class="btn" onclick="closeExperiment()">Cancel</button></div>
+  <div id="validation_alert" class="validation-alert hidden" role="alert" aria-live="polite">
+    <div class="validation-alert-header">
+      <span id="validation_alert_title" class="validation-alert-title">Configuration needs attention</span>
+      <span id="validation_alert_count" class="validation-alert-count"></span>
+      <button type="button" class="validation-alert-close" aria-label="Close alert" onclick="closeValidationAlert()">&times;</button>
+    </div>
+    <ul id="validation_alert_list" class="validation-alert-list"></ul>
+  </div><div class="toolbar"><button class="btn primary" onclick="saveExperiment()">Save configuration</button><button class="btn" onclick="closeExperiment()">Cancel</button></div>
  </div><aside class="detail-aside"><div class="aside-card"><h3>Audience matching</h3><p>A user is eligible when every configured target field matches the request context. Default fields are always required.</p><ul class="aside-list"><li>Project</li><li>Environment</li><li>Platform</li><li>Feature</li><li>Optional custom dimensions</li></ul></div><div class="aside-card"><h3>Variant allocation</h3><p>Variant percentages determine deterministic assignment. If the total is below 100%, the remainder is reported as unassigned.</p></div></aside></section>
  <section id="simulation_view" class="test-grid hidden"><div>
   <section class="section"><div class="section-head"><div><h2>Test request</h2><div class="section-desc">Use a sample user and context to check variant assignment.</div></div></div><div class="form-grid"><div class="input-container"><label>User ID <span class="required">*</span></label><input id="simulation_user_id" value="123456" placeholder="Enter user ID"/><div class="muted">The same ID should receive a stable assignment.</div></div><div class="input-container"><label>Number of users <span class="required">*</span></label><input id="total_users" type="number" min="1" value="1000"/><div class="muted">Used for distribution tests.</div></div></div>
@@ -235,7 +254,7 @@
             </button>
             <select class="action-status" aria-label="Change experiment status"
               onclick="event.stopPropagation()"
-              onchange="event.stopPropagation(); setExperimentStatus('${escapeHtml(exp.id)}', this.value)">
+              onchange="event.stopPropagation(); setExperimentStatus('${escapeHtml(exp.id)}', this.value, this)">
               <option value="draft" ${exp.status === "draft" ? "selected" : ""}>Draft</option>
               <option value="active" ${exp.status === "active" ? "selected" : ""}>Active</option>
               <option value="paused" ${exp.status === "paused" ? "selected" : ""}>Paused</option>
@@ -919,6 +938,38 @@
 
         return conflict_list;
       }
+      function showValidationAlert(errors, success = false) {
+        const alertBox = document.getElementById("validation_alert");
+        const title = document.getElementById("validation_alert_title");
+        const count = document.getElementById("validation_alert_count");
+        const list = document.getElementById("validation_alert_list");
+
+        list.innerHTML = "";
+        alertBox.classList.toggle("success", success);
+        alertBox.classList.remove("hidden");
+
+        if (success) {
+          title.textContent = "Configuration is valid";
+          count.textContent = "✓";
+          const item = document.createElement("li");
+          item.textContent = "All validation checks passed.";
+          list.appendChild(item);
+          return;
+        }
+
+        title.textContent = "Please fix the following issues";
+        count.textContent = errors.length + (errors.length === 1 ? " error" : " errors");
+        errors.forEach((message) => {
+          const item = document.createElement("li");
+          item.textContent = message;
+          list.appendChild(item);
+        });
+      }
+
+      function closeValidationAlert() {
+        document.getElementById("validation_alert").classList.add("hidden");
+      }
+
       function validate(exp_data) {
         const error_list = [];
 
@@ -1168,16 +1219,11 @@
         // DISPLAY VALIDATION RESULT
         // ==========================================
 
-        document.getElementById("valid").innerHTML =
-          error_list.length
-
-            ? '<span style="color:#b42318">' +
-              error_list.join("<br>") +
-              "</span>"
-
-            : '<span style="color:green">' +
-              "Valid configuration ✓" +
-              "</span>";
+        if (error_list.length) {
+          showValidationAlert(error_list);
+        } else {
+          showValidationAlert([], true);
+        }
 
         return !error_list.length;
       }
@@ -1205,13 +1251,17 @@
         save();
         closeExperiment();
       }
-      function setExperimentStatus(exp_id, status) {
+      function setExperimentStatus(exp_id, status, statusSelect) {
         const exp_data =
           experiments.find(
             (exp_item) => exp_item.id === exp_id
           );
 
         if (!exp_data) return;
+
+        function restoreStatusSelect() {
+          if (statusSelect) statusSelect.value = exp_data.status;
+        }
 
         if (
           ["completed", "archived"].includes(exp_data.status) &&
@@ -1223,6 +1273,7 @@
             ". Duplicate it to create a new experiment."
           );
 
+          restoreStatusSelect();
           return;
         }
 
@@ -1256,6 +1307,17 @@
                 .join("\n")
             );
 
+            restoreStatusSelect();
+            return;
+          }
+        }
+
+        if (status === "archived" && exp_data.status !== "archived") {
+          const confirmed = confirm(
+            "Archive this experiment?\n\nArchived experiments will be excluded from the active configuration export."
+          );
+          if (!confirmed) {
+            restoreStatusSelect();
             return;
           }
         }
