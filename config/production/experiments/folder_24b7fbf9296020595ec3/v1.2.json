@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "recommendation_detikcom_001",
   "name": "Recommendation",
-  "version": "1.1",
+  "version": "1.2",
   "status": "active",
   "target": {
     "project": "detikcom",
@@ -25,12 +25,10 @@
       "type": "experiment",
       "models": {
         "modelA": {
-          "src": "internal",
           "url": "https://recg.detik.com/article-recommendation/wp/",
           "tracking_rec": "modelA"
         },
         "modelB": {
-          "src": "internal",
           "url": "https://rech.detik.com/article-recommendation/wp/",
           "tracking_rec": "modelB"
         }
@@ -38,7 +36,6 @@
     },
     "boxrekomendasisticky": {
       "type": "static",
-      "src": "internal",
       "url": "https://recg.detik.com/article-recommendation/sticky/",
       "tracking_rec": "model"
     },
@@ -46,12 +43,10 @@
       "type": "experiment",
       "models": {
         "modelA": {
-          "src": "internal",
           "url": "https://recg.detik.com/article-recommendation/detail/",
           "tracking_rec": "modelA"
         },
         "modelB": {
-          "src": "internal",
           "url": "https://rech.detik.com/article-recommendation/detail/",
           "tracking_rec": "modelB"
         }
@@ -59,10 +54,9 @@
     },
     "artikelrekomendasi": {
       "type": "static",
-      "src": "internal",
       "url": "https://recg.detik.com/article-recommendation/index",
       "tracking_rec": "model"
     }
   },
-  "updated_at": "2026-11-03T07:53:59.709Z"
+  "updated_at": "2026-11-09T03:44:16.813Z"
 }
