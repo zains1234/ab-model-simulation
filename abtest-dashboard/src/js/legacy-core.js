@@ -2,68 +2,33 @@
       const CONFIG_URL = "https://cdn.detik.net.id/analytic-model/config/production/index.json"
       let experiments = [];
       let editingId = null;
-      let homeStatus = "all", currentPage = 1, pageSize = 8, selectedPreviewId = null, detailTab = "configuration";
+      let homeStatus = "all", currentPage = 1, pageSize = 8, selectedPreviewName = null, detailTab = "configuration";
       const DEFAULT_TARGETS = ["project", "environment", "platform", "feature"];
       const MODEL_COLORS = ["#334155", "#0f766e", "#2563eb", "#c0841a", "#7c3aed", "#be123c", "#0891b2", "#4d7c0f", "#9333ea", "#b45309", "#475569", "#0d9488"];
 
       async function loadConfiguration() {
-        try {
-
-          const response = await fetch(CONFIG_URL);
-
-          if (!response.ok) {
-            throw new Error(
-              "Failed to load configuration: HTTP " + response.status
-            );
-          }
-
-          const manifest = await response.json();
-
-          if (manifest.schema_version !== 3) {
-            throw new Error(
-              "Unsupported configuration schema: " +
-              manifest.schema_version
-            );
-          }
-
-          experiments = [];
-
-          for (const manifestExperiment of manifest.experiments || []) {
-
-            const response = await fetch(
-              new URL(
-                manifestExperiment.config_url,
-                CONFIG_URL
-              )
-            );
-
-            if (!response.ok) {
-              throw new Error(
-                "Failed to load experiment: " +
-                manifestExperiment.id
-              );
-            }
-
-            const experiment = await response.json();
-
-            experiments.push(
-              migrateExperiment(experiment)
-            );
-          }
-
-          render();
-
-        } catch (error) {
-
-          console.error("Configuration loading failed:", error);
-
-          document.getElementById("experiment_rows").innerHTML =
-            '<tr><td colspan="6" class="empty">' +
-            'Failed to load configuration.<br>' +
-            escapeHtml(error.message) +
-            '</td></tr>';
+        const response = await fetch(CONFIG_URL, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to load configuration: HTTP " + response.status);
         }
+        const manifest = await response.json();
+        if (manifest.schema_version !== 3) {
+          throw new Error("Unsupported configuration schema: " + manifest.schema_version);
+        }
+        const loaded = [];
+        for (const manifestExperiment of manifest.experiments || []) {
+          const experimentResponse = await fetch(
+            new URL(manifestExperiment.config_url, CONFIG_URL),
+            { cache: "no-store" }
+          );
+          if (!experimentResponse.ok) {
+            throw new Error("Failed to load experiment: " + manifestExperiment.id);
+          }
+          loaded.push(migrateExperiment(await experimentResponse.json()));
+        }
+        return loaded;
       }
+      window.loadCdnExperiments = loadConfiguration;
       function migrateExperiment(exp_item) {
         exp_item = exp_item || {};
         if (!Array.isArray(exp_item.models)) {
@@ -138,16 +103,16 @@
           const projectOk=!projectSelect.value || (exp.target||{}).project===projectSelect.value;
           return statusOk && archiveOk && queryOk && projectOk;
         });
-        if (selectedPreviewId && !filtered.some(exp => exp.id === selectedPreviewId)) {
-          selectedPreviewId = null;
+        if (selectedPreviewName && !filtered.some(exp => exp.name === selectedPreviewName)) {
+          selectedPreviewName = null;
         }
         const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize)); currentPage=Math.min(currentPage,totalPages);
         const visible=filtered.slice((currentPage-1)*pageSize,currentPage*pageSize);
         document.getElementById("experiment_rows").innerHTML=visible.map(exp=>{
           const target=exp.target||{}; const audience=[target.project,target.environment].filter(Boolean).join(" / "); const detail=[target.platform,target.feature].filter(Boolean).join(" · ");
-          return `<tr data-id="${escapeHtml(exp.id)}" class="${selectedPreviewId===exp.id?'selected':''}"><td class="check-cell"><input class="experiment-check" type="checkbox" aria-label="Show ${escapeHtml(exp.name)} in current configuration" ${selectedPreviewId===exp.id?'checked':''} onclick="event.stopPropagation()" onchange="selectPreview('${escapeHtml(exp.id)}', this.checked)"></td><td><b>${escapeHtml(exp.name)}</b><div class="muted">${escapeHtml(exp.id)}</div></td><td><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status[0].toUpperCase()+exp.status.slice(1))}</span></td><td>${escapeHtml(audience||"—")}<div class="muted">${escapeHtml(detail)}</div></td><td>v${escapeHtml(exp.version||"1.0")}</td><td> <div class="row-actions">
+          return `<tr data-id="${escapeHtml(exp.id)}" class="${selectedPreviewName===exp.name?'selected':''}"><td class="check-cell"><input class="experiment-check" type="checkbox" aria-label="Show ${escapeHtml(exp.name)} in current configuration" ${selectedPreviewName===exp.name?'checked':''} onclick="event.stopPropagation()" onchange="selectPreview('${escapeHtml(exp.name)}', this.checked)"></td><td><b>${escapeHtml(exp.name)}</b><div class="muted">${escapeHtml(exp.id)}</div></td><td><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status[0].toUpperCase()+exp.status.slice(1))}</span>${exp.__workspaceSource === "temp" ? '<span class="status temp">TEMP</span>' : ''}</td><td>${escapeHtml(audience||"—")}<div class="muted">${escapeHtml(detail)}</div></td><td>v${escapeHtml(exp.version||"1.0")}</td><td> <div class="row-actions">
             <button class="btn action-icon" type="button" title="Open configuration" aria-label="Open configuration"
-              onclick="event.stopPropagation(); openExperiment('${escapeHtml(exp.id)}','configuration')">
+              onclick="event.stopPropagation(); openExperiment('${escapeHtml(exp.name)}','configuration')">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 7h9M17 7h3M4 17h3M11 17h9"/>
                 <circle cx="15" cy="7" r="2"/>
@@ -155,7 +120,7 @@
               </svg>
             </button>
             <button class="btn action-icon" type="button" title="Duplicate experiment" aria-label="Duplicate experiment"
-              onclick="event.stopPropagation(); duplicateExperiment('${escapeHtml(exp.id)}')">
+              onclick="event.stopPropagation(); duplicateExperiment('${escapeHtml(exp.name)}')">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <rect x="8" y="8" width="12" height="12" rx="2"/>
                 <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
@@ -163,7 +128,7 @@
             </button>
             <select class="action-status" aria-label="Change experiment status"
               onclick="event.stopPropagation()"
-              onchange="event.stopPropagation(); setExperimentStatus('${escapeHtml(exp.id)}', this.value, this)">
+              onchange="event.stopPropagation(); setExperimentStatus('${escapeHtml(exp.name)}', this.value, this)">
               <option value="draft" ${exp.status === "draft" ? "selected" : ""}>Draft</option>
               <option value="active" ${exp.status === "active" ? "selected" : ""}>Active</option>
               <option value="paused" ${exp.status === "paused" ? "selected" : ""}>Paused</option>
@@ -177,21 +142,21 @@
       }
       function setHomeStatus(status){homeStatus=status;currentPage=1;document.querySelectorAll("#home_status_tabs .tab").forEach(t=>t.classList.toggle("active",t.dataset.status===status));render();}
       function changePage(direction){currentPage=Math.max(1,currentPage+direction);render();}
-      function selectPreview(id, checked){selectedPreviewId=checked?id:null;render();}
+      function selectPreview(name, checked){selectedPreviewName=checked?name:null;render();}
       function renderCurrentConfigurations(list=experiments){
-        const selected=selectedPreviewId?list.filter(x=>x.id===selectedPreviewId):list;
-        document.getElementById("current_config_sub").textContent=selectedPreviewId?(selected[0]?.name||"Selected experiment"):"Experiment overview";
+        const selected=selectedPreviewName?list.filter(x=>x.name===selectedPreviewName):list;
+        document.getElementById("current_config_sub").textContent=selectedPreviewName?(selected[0]?.name||"Selected experiment"):"Experiment overview";
         document.getElementById("current_configuration_list").innerHTML=selected.length?selected.map(exp=>{
           const target=exp.target||{}, models=exp.models||[], total=models.reduce((s,m)=>s+Number(m.percentage||0),0), remaining=Math.max(0,100-total);
           const allocationScale=total>100?100/total:1;
           const bars=models.map((m,i)=>`<span title="${escapeHtml(m.name)} · ${Number(m.percentage)||0}%" style="width:${Math.max(0,Number(m.percentage)||0)*allocationScale}%;background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></span>`).join("")+(total<=100?`<span style="width:${remaining}%;background:#e5e7eb"></span>`:"");
           const legend=models.map((m,i)=>`<span><i class="dot" style="background:${MODEL_COLORS[i%MODEL_COLORS.length]}"></i>${escapeHtml(m.name)} &nbsp;${Number(m.percentage)||0}%</span>`).join("")+ (remaining>0?`<span><i class="dot" style="background:#e5e7eb"></i>Unassigned &nbsp;${remaining.toFixed(2)}%</span>`:"");
-          return `<article class="config-item ${selectedPreviewId===exp.id?'selected':''}"><div class="config-item-head"><div><h3>${escapeHtml(exp.name)}</h3><div class="muted">${escapeHtml(exp.id)}</div></div><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status)}</span></div><div class="audience-line">Audience</div><div class="config-meta">${escapeHtml([target.project,target.environment,target.platform,target.feature].filter(Boolean).join(" · ")||"No audience configured")}</div><div class="config-meta">Configuration &nbsp; ${Object.keys(exp.events||{}).length} key · ${models.length} variant values</div><div class="config-meta">Traffic allocation</div><div class="allocation">${bars}</div><div class="legend"><div class="legend-items">${legend}</div></div><div class="config-actions">
-            <button class="btn config-action-btn" type="button" onclick="openExperiment('${escapeHtml(exp.id)}','configuration')" title="Open configuration">
+          return `<article class="config-item ${selectedPreviewName===exp.name?'selected':''}"><div class="config-item-head"><div><h3>${escapeHtml(exp.name)}</h3><div class="muted">${escapeHtml(exp.id)}</div></div><span class="status ${escapeHtml(exp.status)}">${escapeHtml(exp.status)}</span>${exp.__workspaceSource === "temp" ? '<span class="status temp">TEMP</span>' : ''}</div><div class="audience-line">Audience</div><div class="config-meta">${escapeHtml([target.project,target.environment,target.platform,target.feature].filter(Boolean).join(" · ")||"No audience configured")}</div><div class="config-meta">Configuration &nbsp; ${Object.keys(exp.events||{}).length} key · ${models.length} variant values</div><div class="config-meta">Traffic allocation</div><div class="allocation">${bars}</div><div class="legend"><div class="legend-items">${legend}</div></div><div class="config-actions">
+            <button class="btn config-action-btn" type="button" onclick="openExperiment('${escapeHtml(exp.name)}','configuration')" title="Open configuration">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 14 4l1.1 2.1 2.3.9 2.2-.5 1.1 1.9-1.2 2 .2 2.5 1.4 1.8-1.1 1.9-2.3-.2-2 1.4-.7 2.2h-2.2l-.8-2.2-2-1.4-2.3.2-1.1-1.9 1.4-1.8.2-2.5-1.2-2 1.1-1.9 2.2.5 2.3-.9L12 3.5Z"/><circle cx="13" cy="12" r="3"/></svg>
               <span>Open configuration</span>
             </button>
-            <button class="btn config-action-btn" type="button" onclick="openExperiment('${escapeHtml(exp.id)}','simulation')" title="Test assignment">
+            <button class="btn config-action-btn" type="button" onclick="openExperiment('${escapeHtml(exp.name)}','simulation')" title="Test assignment">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.2 8.4A2.4 2.4 0 0 0 6.9 21h10.2a2.4 2.4 0 0 0 2.1-3.6L14 9V3"/><path d="M7.5 15h9"/><circle cx="10" cy="17.5" r=".7"/><circle cx="14.5" cy="13" r=".7"/></svg>
               <span>Test assignment</span>
             </button>
@@ -202,8 +167,8 @@
       if (searchInput) searchInput.oninput = () => {currentPage=1;render();};
       const homePageElement = document.getElementById("home_page");
       if (homePageElement) homePageElement.addEventListener("click", function(event){
-        if (!event.target.closest(".table-wrap") && !event.target.closest(".current-list") && selectedPreviewId) {
-          selectedPreviewId=null;
+        if (!event.target.closest(".table-wrap") && !event.target.closest(".current-list") && selectedPreviewName) {
+          selectedPreviewName=null;
           render();
         }
       });
@@ -225,10 +190,10 @@
         );
         document.getElementById("detail_title").textContent="New experiment"; document.getElementById("breadcrumb_name").textContent="New experiment"; document.getElementById("detail_status").textContent="Draft"; document.getElementById("detail_status").className="status draft"; document.getElementById("saved_version").textContent="Unsaved configuration"; document.getElementById("simulation_id").value=document.getElementById("experiment_id").value; document.getElementById("home_page").classList.remove("active"); document.getElementById("detail_page").classList.add("active"); showDetailTab("configuration");
       }
-      function editExperiment(exp_id) {
-        const experiment_data = experiments.find((exp_item) => exp_item.id === exp_id);
+      function editExperiment(experiment_name) {
+        const experiment_data = experiments.find((exp_item) => exp_item.name === experiment_name);
         if (!experiment_data) return;
-        editingId = exp_id;
+        editingId = experiment_data.name;
         document.getElementById("create_edit_experiment").textContent = "Edit Experiment";
         document.getElementById("experiment_id").value = experiment_data.id;
         document.getElementById("experiment_name").value = experiment_data.name;
@@ -789,7 +754,7 @@
       }
       function findActiveEventConflicts(
         exp_data,
-        ignore_id = null
+        ignore_name = null
       ) {
         const conflict_list = [];
 
@@ -801,7 +766,7 @@
           .filter(
             (exp_item) =>
               exp_item.status === "active" &&
-              exp_item.id !== ignore_id
+              String(exp_item.name || "").toLowerCase() !== String(ignore_name || "").toLowerCase()
           )
           .forEach((exp_item) => {
 
@@ -868,7 +833,6 @@
 
         if (!exp_data.id) error_list.push("Experiment ID required");
         if (/\s/.test(exp_data.id)) error_list.push("Experiment ID cannot contain whitespace");
-        if (experiments.some(x=>x.id===exp_data.id && x.id!==editingId)) error_list.push("Experiment ID must be unique");
 
         if (!exp_data.name) {
           error_list.push("Name required");
@@ -880,7 +844,7 @@
           const current_experiment =
             editingId
               ? experiments.find(
-                  (exp_item) => exp_item.id === editingId
+                  (exp_item) => String(exp_item.name || "").toLowerCase() === String(editingId || "").toLowerCase()
                 )
               : null;
 
@@ -1126,12 +1090,12 @@
         if (!validate(experiment_data)) return;
         experiment_data.updated_at = new Date().toISOString();
         if (editingId) {
-          const old=experiments.find(x=>x.id===editingId);
+          const old=experiments.find(x=>String(x.name || "").toLowerCase()===String(editingId || "").toLowerCase());
           const parts=normalizeVersion(old?.version).split(".").map(Number);
           experiment_data.version=document.getElementById("version_type").value==="major" ? (parts[0]+1)+".0" : parts[0]+"."+(parts[1]+1);
         } else experiment_data.version="1.0";
         if (editingId) {
-          const exp_index = experiments.findIndex((exp_item) => exp_item.id === editingId);
+          const exp_index = experiments.findIndex((exp_item) => String(exp_item.name || "").toLowerCase() === String(editingId || "").toLowerCase());
           if (exp_index < 0) return;
           // if (experiment_data.status === "active" && experiments[exp_index].status === "active")
           //   experiment_data.version = experiments[exp_index].version + 1;
@@ -1140,10 +1104,10 @@
         save();
         closeExperiment();
       }
-      function setExperimentStatus(exp_id, status, statusSelect) {
+      function setExperimentStatus(experiment_name, status, statusSelect) {
         const exp_data =
           experiments.find(
-            (exp_item) => exp_item.id === exp_id
+            (exp_item) => exp_item.name === experiment_name
           );
 
         if (!exp_data) return;
@@ -1175,7 +1139,7 @@
           const active_key_conflicts =
             findActiveEventConflicts(
               exp_data,
-              exp_data.id
+              exp_data.name
             );
 
           if (active_key_conflicts.length) {
@@ -1215,8 +1179,8 @@
 
         save();
       }
-      function duplicateExperiment(exp_id) {
-        const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
+      function duplicateExperiment(experiment_name) {
+        const exp_data = structuredClone(experiments.find((exp_item) => exp_item.name === experiment_name));
         if (!exp_data) return;
         exp_data.id = exp_data.id + "_copy_" + Date.now();
         exp_data.name = (exp_data.name).slice(0, 16);
@@ -1224,7 +1188,7 @@
         exp_data.version = 1;
         experiments.push(exp_data);
         save();
-        openExperiment(exp_data.id, "configuration");
+        openExperiment(exp_data.name, "configuration");
       }
       function preventWhitespace(input) {
         input.value = input.value.replace(/\s/g, '');
@@ -1293,7 +1257,7 @@
                 experiment_item.status === "active"
             )
             .map(async (experiment_item) => ({
-              item: experiment_item,
+              item: TempWorkspace.cleanForExport(experiment_item),
               folder_name: await toFolderName(
                 experiment_item.name
               ),
@@ -1379,7 +1343,7 @@
       function normalizeVersion(value){const s=String(value||"1");return s.includes(".")?s:(s+".0");}
       function showHome(){document.getElementById("home_page").classList.add("active");document.getElementById("detail_page").classList.remove("active");render();}
       function showDetailTab(tab){if(contextJsonEditing)cancelContextJson();detailTab=tab;document.getElementById("configuration_view").classList.toggle("hidden",tab!=="configuration");document.getElementById("simulation_view").classList.toggle("hidden",tab!=="simulation");document.getElementById("configuration_tab").classList.toggle("active",tab==="configuration");document.getElementById("simulation_tab").classList.toggle("active",tab==="simulation");document.getElementById("breadcrumb_tab").textContent=tab==="configuration"?"Configuration":"Simulation";if(tab==="simulation")renderSimulationContext();}
-      function openExperiment(id,tab="configuration"){const exp=experiments.find(x=>x.id===id);if(!exp)return;editExperiment(id);document.getElementById("home_page").classList.remove("active");document.getElementById("detail_page").classList.add("active");document.getElementById("detail_title").textContent=exp.name;document.getElementById("breadcrumb_name").textContent=exp.name;document.getElementById("detail_status").className="status "+exp.status;document.getElementById("detail_status").textContent=exp.status[0].toUpperCase()+exp.status.slice(1);document.getElementById("saved_version").textContent="Saved configuration · v"+normalizeVersion(exp.version);document.getElementById("simulation_id").value=exp.id;showDetailTab(tab);}
+      function openExperiment(name,tab="configuration"){const exp=experiments.find(x=>x.name===name);if(!exp)return;editExperiment(name);document.getElementById("home_page").classList.remove("active");document.getElementById("detail_page").classList.add("active");document.getElementById("detail_title").textContent=exp.name;document.getElementById("breadcrumb_name").textContent=exp.name;document.getElementById("detail_status").className="status "+exp.status;document.getElementById("detail_status").textContent=exp.status[0].toUpperCase()+exp.status.slice(1);document.getElementById("saved_version").textContent="Saved configuration · v"+normalizeVersion(exp.version);document.getElementById("simulation_id").value=exp.id;showDetailTab(tab);}
       let contextJsonEditing = false;
       function toggleContextJson(){
         const fields = document.getElementById("simulation_context_fields");
@@ -1438,8 +1402,8 @@
         const target=exp?.target||{};
         let context = contextValues;
         if (!context) {
-          try { context = JSON.parse(document.getElementById("context").value || "{}"); }
-          catch (_) { context = {}; }
+          // Start with this experiment's actual audience target, not a global sample context.
+          context = Object.assign({}, target);
         }
         const box=document.getElementById("simulation_context_fields");
         const customBox=document.getElementById("simulation_context_custom");
@@ -1473,9 +1437,16 @@
           if(key) context[key]=value;
         });
         document.getElementById("context").value=JSON.stringify(context);
+        const statusBox=document.getElementById("context_match_status");
+        const exp=experiments.find(x=>x.id===document.getElementById("simulation_id").value);
+        if(statusBox && exp && window.AnalyticModelSDK && AnalyticModelSDK._test && AnalyticModelSDK._test.targetMatches){
+          const matches=AnalyticModelSDK._test.targetMatches(exp.target||{},context);
+          statusBox.textContent=matches?"Context matches this experiment's audience rules.":"Context does not match this experiment's audience rules. No variant will be assigned.";
+          statusBox.className="context-status "+(matches?"success":"error");
+        }
       }
       function runSimulationTest(type){document.querySelectorAll(".test-actions .btn").forEach(b=>b.classList.remove("active"));const id={distribution:"run_distribution_btn",inspect:"inspect_btn",consistency:"consistency_btn"}[type];document.getElementById(id).classList.add("active");if(type==="distribution")distribution();if(type==="inspect")inspect();if(type==="consistency")consistency();}
-      function renderSimulationVisual(type,data){const box=document.getElementById("simulation_visual_results");if(type==="distribution"&&data.actual){const entries=Object.entries(data.actual);box.innerHTML=`<div class="result-grid">${entries.map(([name,v])=>`<div><div class="muted">${escapeHtml(name==="__unassigned"?"Unassigned":name)}</div><div class="result-number">${v.count.toLocaleString()} users</div><div class="muted">${v.percentage}% observed</div></div>`).join("")}</div><div class="result-bar">${entries.map(([name,v])=>{const modelIndex=(data.expected||[]).findIndex(x=>x.model===name);const color=name==="__unassigned"?"#e5e7eb":MODEL_COLORS[Math.max(0,modelIndex)%MODEL_COLORS.length];return `<span title="${escapeHtml(name==="__unassigned"?"Unassigned":name)} · ${v.percentage}%" style="width:${v.percentage}%;background:${color}"></span>`;}).join("")}</div><div class="result-foot"><span>Observed allocation</span><span>Configured allocation: ${data.expected.map(x=>x.percentage).join(" / ")}</span></div>`;document.getElementById("result_title").textContent="Distribution results";document.getElementById("result_subtitle").textContent=`Illustrative preview · ${document.getElementById("total_users").value} simulated users`;}else if(type==="inspect"){box.innerHTML=`<div class="aside-card"><div class="muted">Assignment result for user ${escapeHtml(data.userId)}</div><div class="result-number">${escapeHtml(data.assignedModel||"Unassigned")}</div><div class="${data.targetMatches?'success':'error'}">${data.targetMatches?'Context matches audience rules':'Context does not match audience rules'}</div><div class="muted">Bucket ${data.bucket} · ${data.assignmentStatus}</div></div>`;document.getElementById("result_title").textContent="User inspection";document.getElementById("result_subtitle").textContent="Deterministic assignment for the supplied user ID";}else if(type==="consistency"){box.innerHTML=`<div class="aside-card"><div class="result-number">${data.passed?'Consistent':'Inconsistent'}</div><div class="${data.passed?'success':'error'}">${data.passed?'The same request returned the same assignment hash and bucket.':'Assignment results differed between repeated requests.'}</div></div>`;document.getElementById("result_title").textContent="Consistency results";document.getElementById("result_subtitle").textContent="Repeated assignment check";}}
+      function renderSimulationVisual(type,data){const box=document.getElementById("simulation_visual_results");if(type==="distribution"&&data.actual){const entries=Object.entries(data.actual);box.innerHTML=`<div class="result-grid">${entries.map(([name,v])=>`<div><div class="muted">${escapeHtml(name==="__unassigned"?"Unassigned":name)}</div><div class="result-number">${v.count.toLocaleString()} users</div><div class="muted">${v.percentage}% observed</div></div>`).join("")}</div><div class="result-bar">${entries.map(([name,v])=>{const modelIndex=(data.expected||[]).findIndex(x=>x.model===name);const color=name==="__unassigned"?"#e5e7eb":MODEL_COLORS[Math.max(0,modelIndex)%MODEL_COLORS.length];return `<span title="${escapeHtml(name==="__unassigned"?"Unassigned":name)} · ${v.percentage}%" style="width:${v.percentage}%;background:${color}"></span>`;}).join("")}</div><div class="result-foot"><span>Observed allocation</span><span>Configured allocation: ${data.expected.map(x=>x.percentage).join(" / ")}</span></div>`;document.getElementById("result_title").textContent="Distribution results";document.getElementById("result_subtitle").textContent=`Illustrative preview · ${document.getElementById("total_users").value} simulated users`;}else if(type==="inspect"){box.innerHTML=`<div class="aside-card"><div class="muted">Assignment result for user ${escapeHtml(data.userId)}</div><div class="result-number">${escapeHtml(data.targetMatches?(data.assignedModel||"Unassigned"):"Not eligible")}</div><div class="${data.targetMatches?'success':'error'}">${data.targetMatches?'Context matches audience rules':'Context does not match audience rules'}</div><div class="muted">${data.targetMatches?`Bucket ${data.bucket} · ${data.assignmentStatus}`:"No bucket assigned · audience target mismatch"}</div></div>`;document.getElementById("result_title").textContent="User inspection";document.getElementById("result_subtitle").textContent="Deterministic assignment for the supplied user ID";}else if(type==="consistency"){box.innerHTML=`<div class="aside-card"><div class="result-number">${data.passed?'Consistent':'Inconsistent'}</div><div class="${data.passed?'success':'error'}">${data.passed?'The same request returned the same assignment hash and bucket.':'Assignment results differed between repeated requests.'}</div></div>`;document.getElementById("result_title").textContent="Consistency results";document.getElementById("result_subtitle").textContent="Repeated assignment check";}}
       function updateAllocationVisual(){
         const models=currentModels();
         const total=models.reduce((s,m)=>s+(Number(m.percentage)||0),0);
@@ -1568,21 +1539,25 @@
           return;
         }
         if (!document.getElementById("simulation_user_id").value.trim()) { document.getElementById("simulation_output").textContent="User ID is required"; return; }
-        const hash_value = await hash(exp_data.id + ":" + document.getElementById("simulation_user_id").value),
-          bucket_value = AnalyticModelSDK._test.bucket(hash_value),
+        const requestContext = JSON.parse(document.getElementById("context").value || "{}");
+        const targetMatches = AnalyticModelSDK._test.targetMatches(exp_data.target || {}, requestContext);
+        let hash_value = null, bucket_value = null, model_item = null;
+        // Audience targeting is evaluated before bucketing. Ineligible requests never receive a bucket.
+        if (targetMatches) {
+          hash_value = await hash(exp_data.id + ":" + document.getElementById("simulation_user_id").value);
+          bucket_value = AnalyticModelSDK._test.bucket(hash_value);
           model_item = AnalyticModelSDK._test.select(exp_data.models, bucket_value);
+        }
         document.getElementById("simulation_output").textContent = JSON.stringify(
           {
             experimentId: exp_data.id,
             userId: document.getElementById("simulation_user_id").value,
+            context: requestContext,
+            targetMatches: targetMatches,
             hash: hash_value,
             bucket: bucket_value,
             assignedModel: model_item ? model_item.name : null,
-            assignmentStatus: model_item ? "assigned" : "unassigned",
-            targetMatches: AnalyticModelSDK._test.targetMatches(
-              exp_data.target,
-              JSON.parse(document.getElementById("context").value),
-            ),
+            assignmentStatus: !targetMatches ? "ineligible" : (model_item ? "assigned" : "unassigned"),
           },
           null,
           2,

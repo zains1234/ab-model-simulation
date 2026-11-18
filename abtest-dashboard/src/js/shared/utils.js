@@ -18,8 +18,9 @@
     window.clearTimeout(window.__notificationTimer);
     window.__notificationTimer = window.setTimeout(function () { el.classList.add("hidden"); }, 3500);
   };
-  window.getRouteId = function () {
+  window.getRouteName = function () {
     var parts = location.pathname.split("/").filter(Boolean);
     return parts.length > 1 ? decodeURIComponent(parts[1]) : "";
   };
+  window.getRouteId = window.getRouteName;
 })();
