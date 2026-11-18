@@ -1313,7 +1313,7 @@
         const exp_data = structuredClone(experiments.find((exp_item) => exp_item.id === exp_id));
         if (!exp_data) return;
         exp_data.id = exp_data.id + "_copy_" + Date.now();
-        exp_data.name = (exp_data.name + " (Copy)").slice(0, 16);
+        exp_data.name = (exp_data.name).slice(0, 16);
         exp_data.status = "draft";
         exp_data.version = 1;
         experiments.push(exp_data);
