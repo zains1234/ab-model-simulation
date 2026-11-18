@@ -1,0 +1,14 @@
+{
+  "name": "abtest-experiment-platform-v1",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Version 1 workspace for the ABTEST Experiment Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
