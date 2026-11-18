@@ -1,0 +1,14 @@
+{
+  "name": "abtest-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ABTEST Dashboard refactored to Node.js, Express, and Vanilla JavaScript",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
