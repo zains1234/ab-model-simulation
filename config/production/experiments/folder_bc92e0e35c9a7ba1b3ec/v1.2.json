@@ -13,11 +13,11 @@
   "models": [
     {
       "name": "modelA",
-      "percentage": 50
+      "percentage": 60
     },
     {
       "name": "modelB",
-      "percentage": 50
+      "percentage": 40
     }
   ],
   "events": {
@@ -58,5 +58,5 @@
       "tracking_rec": "model"
     }
   },
-  "updated_at": "2026-11-09T03:44:16.813Z"
+  "updated_at": "2026-11-18T04:11:53.832Z"
 }
