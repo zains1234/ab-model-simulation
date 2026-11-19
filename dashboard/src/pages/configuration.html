@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABTEST — Experiment Platform</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/pages/configuration.css"></head>
+<body>
+<div id="shared_header"></div>
+<main>
+<section id="detail_page" class="page active">
+<input id="create_edit_experiment" class="hidden" value="">
+<input id="simulation_id" class="hidden" value="">
+<div class="breadcrumb"><a href="/">Experiments</a><span>›</span><span id="breadcrumb_name">Experiment</span><span>›</span><span id="breadcrumb_tab">Configuration</span></div>
+<div class="toolbar" style="justify-content:flex-end;margin-bottom:16px"><a class="btn" id="open_simulation_link" href="#">Open simulation →</a></div>
+<div class="detail-heading"><div><div class="inline" style="gap:10px;align-items:center"><h1 id="detail_title">Experiment</h1><span id="detail_status" class="status draft">Draft</span></div><div class="sub" id="detail_subtitle">Configure audience and variant assignment.</div></div><div class="saved" id="saved_version">Unsaved configuration</div></div>
+<section class="detail-layout" id="configuration_view"><div>
+<section class="section"><div class="section-head"><div><h2>Experiment details</h2><div class="section-desc">Identify and manage this experiment.</div></div></div><div class="form-grid"><div class="input-container"><label>Experiment name <span class="required">*</span></label><input id="experiment_name" maxlength="16" placeholder="e.g. Checkout test"/></div><div class="input-container"><label>Experiment ID <span class="required">*</span></label><input id="experiment_id" oninput="preventWhitespace(this)" placeholder="checkout_flow_001"/></div><div class="input-container"><label>Status <span class="required">*</span></label><select id="experiment_status"><option value="draft">Draft</option><option value="active">Active</option><option value="paused">Paused</option><option value="completed">Completed</option><option value="archived">Archived</option></select></div><div class="input-container"><label>Version update</label><div class="inline"><input id="experiment_version" readonly="" value="1.0"/><select aria-label="Version update type" id="version_type"><option value="minor">Minor update</option><option value="major">Major update</option></select></div><div class="muted">Version increments automatically when you save changes.</div></div></div></section>
+<section class="section"><div class="section-head"><div><h2>Audience targeting</h2><div class="section-desc">All four default audience rules are required. Add custom dimensions when needed.</div></div><button class="btn small" onclick="addExpTarget()" type="button">＋ Add target</button></div><div id="experiment_target"></div></section>
+<section class="section"><div class="section-head"><div><h2>Variants model</h2><div class="section-desc">Allocate traffic across variants. Any remaining percentage is unassigned.</div></div><button class="btn small" onclick="addModel()" type="button">＋ Add variant</button></div><div id="model_list_section"></div><div class="total" id="model_total"></div><div class="allocation large" id="model_allocation_bar"></div><div class="legend" id="model_allocation_legend"></div></section>
+<section class="section"><div class="section-head"><div><h2>Variant configuration</h2><div class="section-desc">Define the event keys and the configuration used by each variant.</div></div><div class="inline"><button class="btn small" id="variant_json_toggle" onclick="toggleVariantJson()" type="button">Edit as JSON</button><button class="btn small" id="variant_add_event" onclick="addRec()" type="button">＋ Add event</button></div></div><div id="recomendation_list_section"></div><div class="json-editor hidden" id="variant_json_editor"><div class="muted" style="margin:0 0 8px">Edit the event configuration object. Event keys are object keys; each value must use type "experiment" or "static".</div><textarea aria-label="Variant configuration JSON" id="variant_json_text" rows="16" spellcheck="false"></textarea><div class="error" id="variant_json_error"></div><div class="toolbar" style="margin-top:10px"><button class="btn primary" onclick="applyVariantJson()" type="button">Apply JSON</button><button class="btn" onclick="cancelVariantJson()" type="button">Cancel</button></div></div></section>
+<div aria-live="polite" class="validation-alert hidden" id="validation_alert" role="alert">
+<div class="validation-alert-header">
+<span class="validation-alert-title" id="validation_alert_title">Configuration needs attention</span>
+<span class="validation-alert-count" id="validation_alert_count"></span>
+<button aria-label="Close alert" class="validation-alert-close" onclick="closeValidationAlert()" type="button">×</button>
+</div>
+<ul class="validation-alert-list" id="validation_alert_list"></ul>
+</div><div class="toolbar"><button class="btn primary" onclick="saveExperiment()">Save configuration</button><button class="btn" onclick="closeExperiment()">Cancel</button></div>
+</div><aside class="detail-aside"><div class="aside-card"><h3>Audience matching</h3><p>A user is eligible when every configured target field matches the request context. Default fields are always required.</p><ul class="aside-list"><li>Project</li><li>Environment</li><li>Platform</li><li>Feature</li><li>Optional custom dimensions</li></ul></div><div class="aside-card"><h3>Variant allocation</h3><p>Variant percentages determine deterministic assignment. If the total is below 100%, the remainder is reported as unassigned.</p></div></aside></section>
+</section>
+</main>
+<div id="app_notification" class="app-notification hidden" role="status" aria-live="polite"></div>
+<div id="unsaved_modal" class="unsaved-modal hidden" role="dialog" aria-modal="true" aria-labelledby="unsaved_title">
+  <div class="unsaved-modal-panel">
+    <h2 id="unsaved_title">Unsaved changes</h2>
+    <p>You have changes that have not been saved. If you leave this page, your changes will be discarded.</p>
+    <div class="toolbar">
+      <button type="button" class="btn" id="stay_editing_btn">Stay and continue editing</button>
+      <button type="button" class="btn primary" id="discard_changes_btn">Discard changes</button>
+    </div>
+  </div>
+</div>
+<script src="/js/shared/components.js" defer></script>
+<script src="/js/legacy-core.js" defer></script>
+<script src="/js/shared/utils.js" defer></script>
+<script src="/js/services/api-service.js" defer></script>
+<script src="/js/pages/configuration.js" defer></script>
+</body></html>

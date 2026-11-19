@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ABTEST — Experiment Platform</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/layout.css">
+<link rel="stylesheet" href="/css/components.css">
+<link rel="stylesheet" href="/css/pages/main.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script></head>
+<body>
+<div id="shared_header"></div>
+<main>
+<section class="page active" id="home_page">
+<div class="page-heading"><div><h1>Experiments</h1><div class="sub">Test features, flows, content, and models across projects. <span class="temp-help">TEMP means saved in this browser but not yet deployed to CDN.</span></div></div><div class="toolbar"><button class="btn export-manifest" onclick="exportAll()" title="Export"> <svg fill="none" height="16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="16"> <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path> <polyline points="7 10 12 15 17 10"></polyline> <line x1="12" x2="12" y1="15" y2="3"></line> </svg> Export</button><button class="btn" onclick="clearTempChanges()" title="Remove local temporary changes and drafts">Clear TEMP</button><button class="btn primary" onclick="newExperiment()">＋  New Experiment</button></div></div>
+<div class="tabs" id="home_status_tabs"><button class="tab active" data-status="all" onclick="setHomeStatus('all')">All experiments <span class="tab-count" id="count_all">0</span></button><button class="tab" data-status="active" onclick="setHomeStatus('active')">Active <span class="tab-count" id="count_active">0</span></button><button class="tab" data-status="paused" onclick="setHomeStatus('paused')">Paused <span class="tab-count" id="count_paused">0</span></button><button class="tab" data-status="draft" onclick="setHomeStatus('draft')">Draft <span class="tab-count" id="count_draft">0</span></button><button class="tab" data-status="completed" onclick="setHomeStatus('completed')">Completed <span class="tab-count" id="count_completed">0</span></button></div>
+<div class="home-filters"><div class="search"><input id="search_exp" placeholder="Search by experiment name or ID"/></div><div class="filters"><select id="project_filter" onchange="render()"><option value="">All projects</option></select><select id="archive_filter" onchange="render()"><option value="">Archived</option><option value="show">Show archived</option><option value="hide">Hide archived</option></select></div></div>
+<div class="table-wrap"><table><thead><tr><th aria-label="Select experiment" class="check-column"></th><th>Experiment</th><th>Status</th><th>Audience</th><th>Version</th><th style="min-width:230px">Actions</th></tr></thead><tbody id="experiment_rows"></tbody></table></div>
+<div class="pagination"><span id="pagination_info">Showing 0 experiments</span><div class="inline"><button class="btn link" onclick="changePage(-1)">Previous</button><button class="btn link" onclick="changePage(1)">Next</button></div></div>
+<div class="home-bottom"><section><div class="current-title"><div><h2>Current configuration</h2><div class="muted" id="current_config_sub">All experiments</div></div></div><div class="current-list" id="current_configuration_list"></div></section><aside class="explain"><h3>ⓘ  How assignment works</h3><p>Users keep the same variant while their ID and configuration stay the same.</p><ul class="checks"><li>All audience rules must match</li><li>Variant allocation must total 100%</li><li>Each key needs a value per variant</li></ul><p>Test a configuration before you activate it.</p></aside></div>
+<div class="workspace-foot"><span>Configuration workspace</span><span>No performance results connected</span></div>
+</section>
+</main>
+<div id="app_notification" class="app-notification hidden" role="status" aria-live="polite"></div>
+<div id="unsaved_modal" class="unsaved-modal hidden" role="dialog" aria-modal="true" aria-labelledby="unsaved_title">
+  <div class="unsaved-modal-panel">
+    <h2 id="unsaved_title">Unsaved changes</h2>
+    <p>You have changes that have not been saved. If you leave this page, your changes will be discarded.</p>
+    <div class="toolbar">
+      <button type="button" class="btn" id="stay_editing_btn">Stay and continue editing</button>
+      <button type="button" class="btn primary" id="discard_changes_btn">Discard changes</button>
+    </div>
+  </div>
+</div>
+<script src="/js/shared/utils.js" defer></script>
+<script src="/js/services/api-service.js" defer></script>
+<script src="/js/shared/components.js" defer></script>
+<script src="/js/legacy-core.js" defer></script>
+<script src="/js/pages/main.js" defer></script>
+</body></html>

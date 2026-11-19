@@ -1,0 +1,13 @@
+
+{
+  "rewrites": [
+    {
+      "source": "/configuration/:name",
+      "destination": "/configuration.html"
+    },
+    {
+      "source": "/simulation/:name",
+      "destination": "/simulation.html"
+    }
+  ]
+}
