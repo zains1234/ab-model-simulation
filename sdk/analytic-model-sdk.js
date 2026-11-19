@@ -652,6 +652,7 @@
             if (w.dataLayer) {
               w.dataLayer.push({
                 event: "experiment_model_assigned",
+                user_id: String(o.userId),
                 experiment_id: e.id,
                 experiment_name: e.name,
                 experiment_version: e.version,
