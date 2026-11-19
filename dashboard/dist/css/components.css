@@ -1,10 +1,1 @@
-/* Shared component styles; original dashboard styles remain unchanged in base.css. */
-.unsaved-modal{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;display:grid;place-items:center;padding:20px}
-.unsaved-modal.hidden{display:none!important}
-.unsaved-modal-panel{width:min(460px,100%);background:#fff;border-radius:8px;padding:24px;box-shadow:0 18px 60px rgba(0,0,0,.18)}
-.unsaved-modal-panel h2{font-size:17px;margin:0 0 8px}
-.unsaved-modal-panel p{font-size:12px;color:#555;line-height:1.7;margin:0 0 20px}
-.unsaved-modal-panel .toolbar{justify-content:flex-end;flex-wrap:wrap}
-.app-notification{position:fixed;right:24px;bottom:24px;z-index:1100;max-width:min(420px,calc(100vw - 48px));padding:12px 16px;border-radius:6px;background:#202020;color:#fff;font-size:12px;box-shadow:0 8px 30px rgba(0,0,0,.15)}
-.app-notification.error{background:#8f3029}
-.app-notification.hidden{display:none!important}
+.unsaved-modal{background:rgba(0,0,0,.35);display:grid;inset:0;padding:20px;place-items:center;position:fixed;z-index:1000}.unsaved-modal.hidden{display:none!important}.unsaved-modal-panel{background:#fff;border-radius:8px;box-shadow:0 18px 60px rgba(0,0,0,.18);padding:24px;width:min(460px,100%)}.unsaved-modal-panel h2{font-size:17px;margin:0 0 8px}.unsaved-modal-panel p{color:#555;font-size:12px;line-height:1.7;margin:0 0 20px}.unsaved-modal-panel .toolbar{flex-wrap:wrap;justify-content:flex-end}.app-notification{background:#202020;border-radius:6px;bottom:24px;box-shadow:0 8px 30px rgba(0,0,0,.15);color:#fff;font-size:12px;max-width:min(420px,calc(100vw - 48px));padding:12px 16px;position:fixed;right:24px;z-index:1100}.app-notification.error{background:#8f3029}.app-notification.hidden{display:none!important}

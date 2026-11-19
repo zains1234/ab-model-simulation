@@ -1,15 +1,1 @@
-(function () {
-  "use strict";
-  window.AppComponentsReady = fetch("/components/header.html")
-    .then(function (response) {
-      if (!response.ok) throw new Error("Unable to load shared header");
-      return response.text();
-    })
-    .then(function (markup) {
-      var host = document.getElementById("shared_header");
-      if (host) host.innerHTML = markup;
-    })
-    .catch(function (error) {
-      console.error("Shared component loading failed:", error);
-    });
-})();
+!function(){"use strict";window.AppComponentsReady=fetch("/components/header.html").then(function(e){if(!e.ok)throw new Error("Unable to load shared header");return e.text()}).then(function(e){var n=document.getElementById("shared_header");n&&(n.innerHTML=e)}).catch(function(e){console.error("Shared component loading failed:",e)})}();
